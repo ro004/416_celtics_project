@@ -63,7 +63,7 @@ const CATEGORY_DEFS = {
 	},
 };
 
-export default function CategoryBarChart({ category = "provisional" }) {
+export default function CategoryBarChart({ category = "provisional", data: externalData }) {
 	const ref = useRef();
 	const wrapperRef = useRef();
 	const [data, setData] = useState([]);
@@ -73,13 +73,22 @@ export default function CategoryBarChart({ category = "provisional" }) {
 	const categoryLabels = defs.labels;
 
 	useEffect(() => {
-		// generate random demo data based on chosen labels
-		const mock = Object.keys(categoryLabels).map((code) => ({
-			category: code,
-			value: Math.floor(Math.random() * 120 + 20),
-		}));
-		setData(mock);
-	}, [category, categoryLabels]); // (3) regenerate when category changes
+		if (externalData && typeof externalData === "object") {
+			// Convert backend object --> {category: value} map
+			const formatted = Object.entries(externalData).map(([code, value]) => ({
+				category: code,
+				value: Number(value) || 0,
+			}));
+			setData(formatted);
+		} else {
+			// Fallback mock data (keeps your prototype working)
+			const mock = Object.keys(categoryLabels).map((code) => ({
+				category: code,
+				value: Math.floor(Math.random() * 120 + 20),
+			}));
+			setData(mock);
+		}
+	}, [externalData, category, categoryLabels]); // rerun on category changes
 
 	useEffect(() => {
 		if (!data.length) return;
@@ -156,7 +165,7 @@ export default function CategoryBarChart({ category = "provisional" }) {
 				<svg ref={ref} style={{ width: "100%", height: "100%" }} />
 			</div>
 
-			{/* legend rendered with MUI */}
+			{/* legend */}
 			<Box
 				sx={{
 					ml: 2,

@@ -27,6 +27,7 @@ import StateMap from "./StateMap";
 import CategoryBarChart from "./CategoryBarChart";
 import CategoryTable from "./CategoryTable";
 import EquipmentTable from "./EquipmentTable";
+import { getProvBallotSummaryandRegionsList } from "../../api/provBallots";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
 const POLITICAL_PARTY_DETAILED = ["DE", "SC"];
@@ -73,10 +74,32 @@ export default function StatePage() {
 	const [tab, setTab] = useState("provisional"); // right-column tabs
 	const [showBubbles, setShowBubbles] = useState(false);
 
+	// Data states for barchart / table / choropleth
+	const [categorySummary, setCategorySummary] = useState(null); // GUI-3 data
+	const [categoryRegions, setCategoryRegions] = useState([]); // GUI-4 table data
+
 	// mock CVAP values for now
 	const registeredVoters = 1000000;
 	const cvap = 1200000;
 	const cvapPct = ((registeredVoters / cvap) * 100).toFixed(1);
+
+	// fetch provisional data when category is "provisional"
+	useEffect(() => {
+		if (category !== "provisional") return;
+		const fetchData = async () => {
+			try {
+				const data = await getProvBallotSummaryandRegionsList(id, 2024);
+				if (data) {
+					setCategorySummary(data.provisionalSummary || {});
+					setCategoryRegions(data.regionsList || []);
+				}
+			} catch (err) {
+				console.error("Failed to load provisional ballot data:", err);
+			}
+		};
+
+		fetchData();
+	}, [id, category]);
 
 	return (
 		<Box sx={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "column" }}>
@@ -204,7 +227,7 @@ export default function StatePage() {
 										? "Pollbook Deletions — Bar Chart"
 										: "Mail Ballot Rejections — Bar Chart"}
 								</Typography>
-								<CategoryBarChart category={category} />
+								<CategoryBarChart category={category} data={categorySummary} />
 							</Paper>
 							<Paper
 								sx={{
@@ -224,7 +247,11 @@ export default function StatePage() {
 										? "Pollbook Deletions by Region"
 										: "Mail Ballot Rejections by Region"}
 								</Typography>
-								<CategoryTable category={category} isPolitical={isPoliticalPartyDetailed} />
+								<CategoryTable
+									category={category}
+									isPolitical={isPoliticalPartyDetailed}
+									rows={categoryRegions}
+								/>
 							</Paper>
 						</Box>
 

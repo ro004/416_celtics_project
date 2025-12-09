@@ -35,19 +35,17 @@ const CATEGORY_COLUMNS = {
 	],
 };
 
-export default function CategoryTable({ category = "provisional" }) {
+export default function CategoryTable({ category = "provisional", rowsData }) {
 	const codes = CATEGORY_COLUMNS[category] || CATEGORY_COLUMNS.provisional;
-	const rows = Array.from({ length: 10 }, (_, i) => {
-		const row = { region: `Region ${i + 1}` };
-		let sum = 0;
-		codes.forEach((c) => {
-			const val = Math.floor(Math.random() * 200);
-			row[c] = val;
-			sum += val;
-		});
-		row.total = sum;
-		return row;
-	});
+
+	// rowsData should be an array of county objects:
+	// [{ region: "Denver", E2a: 12, E2b: 4, ... }, ...]
+	const rows = Array.isArray(rowsData)
+		? rowsData.map((row) => ({
+				...row,
+				total: codes.reduce((sum, code) => sum + (Number(row[code]) || 0), 0),
+		  }))
+		: [];
 
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(3);
@@ -76,7 +74,7 @@ export default function CategoryTable({ category = "provisional" }) {
 					<TableBody>
 						{rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
 							<TableRow key={idx}>
-								<TableCell>{row.unit}</TableCell>
+								<TableCell>{row.region}</TableCell>
 								{codes.map((code) => (
 									<TableCell key={code} align="right">
 										{row[code]}
