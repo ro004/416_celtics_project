@@ -1,9 +1,7 @@
 package com.example.celtics_server.controllers;
 
-import com.example.celtics_server.models.DelawareVotes;
-import com.example.celtics_server.models.SouthCarolinaVotes;
-import com.example.celtics_server.repositories.delawareRepository;
-import com.example.celtics_server.repositories.southCarolinaRepository;
+import com.example.celtics_server.models.PoliticalPartyVotes;
+import com.example.celtics_server.services.PoliticalPartyVotesService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -11,21 +9,19 @@ import java.util.List;
 
 @RequestMapping("/api/stateVotes")
 public class StateVotesController {
-    private final delawareRepository delawareRepository;
-    private final southCarolinaRepository southCarolinaRepository;
+    private final PoliticalPartyVotesService politicalPartyVotesService;
 
-    public StateVotesController(delawareRepository delawareRepository, southCarolinaRepository southCarolinaRepository){
-        this.delawareRepository = delawareRepository;
-        this.southCarolinaRepository = southCarolinaRepository;
+    public StateVotesController(PoliticalPartyVotesService politicalPartyVotesService) {
+        this.politicalPartyVotesService = politicalPartyVotesService;
     }
 
-    @GetMapping("/delaware")
-    public List<DelawareVotes> getDelawareInfo(){
-        return delawareRepository.findAll();
+    @GetMapping("/{state}")
+    public PoliticalPartyVotes getStateInfo(@PathVariable String state) {
+        return politicalPartyVotesService.getStateInfo(state);
     }
 
-    @GetMapping("/southCarolina")
-    public List<SouthCarolinaVotes> getSouthCarolinaInfo(){
-        return southCarolinaRepository.findAll();
+    @GetMapping("/all")
+    public List<PoliticalPartyVotes> getAllPoliticalInfo(){
+        return politicalPartyVotesService.getAllPoliticalInfo();
     }
 }
