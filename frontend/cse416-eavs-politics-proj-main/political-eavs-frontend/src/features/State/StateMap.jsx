@@ -70,6 +70,7 @@ export default function StateMap({
 	equipmentMode, // "none" | "type"
 	countyFeatures, // full county geojson Feature[] (all 4 detailed states)
 	showBubbles, // boolean, whether to show voter bubbles (OK only for now)
+	choroplethTotal, // total value for choropleth
 }) {
 	// filter counties for this state only once
 	const counties = useMemo(() => {
@@ -114,14 +115,18 @@ export default function StateMap({
 		return { color: "#555", weight: 0.8, fillOpacity: 0 };
 	};
 
-	// choropleth style – monochrome orange bins
+	// GUI-5 choropleth style – monochrome orange bins
 	const choroplethStyle = (feature) => {
 		const id = feature.properties.GEOID || feature.properties.NAME || `${feature.properties.COUNTYFP}`;
 		// pick dummy values differently depending on whether category is "count" or "percent"
-		const val =
-			dataCategory === "provisional"
-				? pseudoValue(id, 20, 1000) // absolute counts
-				: pseudoValue(id, 1, 100); // percentage values
+		// const val =
+		// 	dataCategory === "provisional"
+		// 		? pseudoValue(id, 20, 1000) // absolute counts
+		// 		: pseudoValue(id, 1, 100); // percentage values
+		if (choroplethTotal == null) {
+			return { fillOpacity: 0 };
+		}
+		const val = choroplethTotal;
 
 		let colors = ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#cc7a00", "#994d00"];
 		let bins = [100, 250, 400, 600, 800, 1000];

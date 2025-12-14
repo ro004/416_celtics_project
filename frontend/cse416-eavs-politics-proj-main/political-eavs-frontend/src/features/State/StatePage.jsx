@@ -77,6 +77,7 @@ export default function StatePage() {
 	// Data states for barchart / table / choropleth
 	const [categorySummary, setCategorySummary] = useState(null); // GUI-3 data
 	const [categoryRegions, setCategoryRegions] = useState([]); // GUI-4 table data
+	const [categoryTotal, setCategoryTotal] = useState(null); // GUI-5 total for choropleth
 
 	// mock CVAP values for now
 	const registeredVoters = 1000000;
@@ -92,6 +93,7 @@ export default function StatePage() {
 				if (data) {
 					setCategorySummary(data.provisionalSummary || {});
 					setCategoryRegions(data.regionsList || []);
+					setCategoryTotal(data.provisionalTotal || null);
 				}
 			} catch (err) {
 				console.error("Failed to load provisional ballot data:", err);
@@ -174,6 +176,7 @@ export default function StatePage() {
 								isDetailed={isDetailed}
 								dataCategory={category}
 								equipmentMode={equipOverlay}
+								choroplethTotal={categoryTotal}
 								countyFeatures={countyBoundaries.features}
 								showBubbles={showBubbles}
 							/>
