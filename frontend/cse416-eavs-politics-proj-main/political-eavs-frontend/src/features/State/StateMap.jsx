@@ -123,7 +123,7 @@ export default function StateMap({
 		// 	dataCategory === "provisional"
 		// 		? pseudoValue(id, 20, 1000) // absolute counts
 		// 		: pseudoValue(id, 1, 100); // percentage values
-		if (choroplethTotal == null) {
+		if (choroplethTotal === null) {
 			return { fillOpacity: 0 };
 		}
 		const val = choroplethTotal;
