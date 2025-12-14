@@ -13,47 +13,47 @@ import {
 import { useState } from "react";
 
 // mock rows; later, load from backend
-const ROWS = [
-	{
-		makeModel: "Acme ScanMaster 3000",
-		available: true,
-		quantity: 420,
-		type: "Scanner",
-		description: "Precinct-count optical scanner",
-		ageYears: 5,
-		os: "Embedded Linux",
-		certification: "VVSG 2.0 certified",
-		scanRate: "60%",
-		errorRate: "0.3%",
-		reliability: "82%",
-	},
-	{
-		makeModel: "Votex Touch-1",
-		available: false,
-		quantity: 180,
-		type: "DRE no VVPAT",
-		description: "Legacy touchscreen DRE",
-		ageYears: 12,
-		os: "Windows CE",
-		certification: "VVSG 1.0 certified",
-		scanRate: "70%",
-		errorRate: "0.8%",
-		reliability: "84%",
-	},
-	{
-		makeModel: "Electra Mark-B",
-		available: true,
-		quantity: 260,
-		type: "Ballot Marking Device",
-		description: "ADA-compliant BMD",
-		ageYears: 3,
-		os: "Android",
-		certification: "VVSG 2.0 applied",
-		scanRate: "75%",
-		errorRate: "0.2%",
-		reliability: "88%",
-	},
-];
+// const ROWS = [
+// 	{
+// 		makeModel: "Acme ScanMaster 3000",
+// 		available: true,
+// 		quantity: 420,
+// 		type: "Scanner",
+// 		description: "Precinct-count optical scanner",
+// 		ageYears: 5,
+// 		os: "Embedded Linux",
+// 		certification: "VVSG 2.0 certified",
+// 		scanRate: "60%",
+// 		errorRate: "0.3%",
+// 		reliability: "82%",
+// 	},
+// 	{
+// 		makeModel: "Votex Touch-1",
+// 		available: false,
+// 		quantity: 180,
+// 		type: "DRE no VVPAT",
+// 		description: "Legacy touchscreen DRE",
+// 		ageYears: 12,
+// 		os: "Windows CE",
+// 		certification: "VVSG 1.0 certified",
+// 		scanRate: "70%",
+// 		errorRate: "0.8%",
+// 		reliability: "84%",
+// 	},
+// 	{
+// 		makeModel: "Electra Mark-B",
+// 		available: true,
+// 		quantity: 260,
+// 		type: "Ballot Marking Device",
+// 		description: "ADA-compliant BMD",
+// 		ageYears: 3,
+// 		os: "Android",
+// 		certification: "VVSG 2.0 applied",
+// 		scanRate: "75%",
+// 		errorRate: "0.2%",
+// 		reliability: "88%",
+// 	},
+// ];
 
 const COLS = [
 	{ key: "makeModel", label: "Make / Model" },
@@ -68,7 +68,7 @@ const COLS = [
 	{ key: "reliability", label: "Reliability" },
 ];
 
-export default function EquipmentTable() {
+export default function EquipmentTable({ rows = [] }) {
 	const [page, setPage] = useState(0);
 	const [rpp, setRpp] = useState(5);
 
@@ -90,7 +90,7 @@ export default function EquipmentTable() {
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{ROWS.slice(page * rpp, page * rpp + rpp).map((row, i) => (
+						{rows.slice(page * rpp, page * rpp + rpp).map((row, i) => (
 							<TableRow key={i}>
 								<TableCell sx={{ color: row.available ? "inherit" : "error.main", fontWeight: 500 }}>
 									{row.makeModel}
@@ -112,7 +112,7 @@ export default function EquipmentTable() {
 
 			<TablePagination
 				component="div"
-				count={ROWS.length}
+				count={rows.length}
 				page={page}
 				onPageChange={(_, p) => setPage(p)}
 				rowsPerPage={rpp}
