@@ -1,6 +1,8 @@
 package com.example.celtics_server.controllers;
 
 import com.example.celtics_server.dtos.ProvisionalViewDTO;
+import com.example.celtics_server.dtos.ActiveVotersViewDTO;
+import com.example.celtics_server.dtos.USEquipmentViewDTO;
 import com.example.celtics_server.services.EavsService;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,9 +18,24 @@ public class EavsController {
 
     @GetMapping("/provisional/{stateFips}/{year}")
     public ProvisionalViewDTO getProvisionalForState(
-            @PathVariable Integer stateFips,
-            @RequestParam(defaultValue = "2024") Integer year
+            @PathVariable String stateFips,
+            @PathVariable Integer year
     ) {
         return eavsService.getProvisionalViewForState(stateFips, year);
+    }
+
+    @GetMapping("/activevoters/{stateFips}/{year}")
+    public ActiveVotersViewDTO getActiveVotersForState(
+            @PathVariable String stateFips,
+            @PathVariable Integer year
+    ){
+        return eavsService.getActiveVotersViewForState(stateFips, year);
+    }
+
+    @GetMapping("/equipment/{year}")
+    public USEquipmentViewDTO getEquipmentInfo(
+            @PathVariable Integer year
+    ){
+        return eavsService.getEquipmentInfo(year);
     }
 }

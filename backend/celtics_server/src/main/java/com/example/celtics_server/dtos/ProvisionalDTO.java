@@ -1,7 +1,7 @@
 package com.example.celtics_server.dtos;
 
 public record ProvisionalDTO(
-        Integer state_fips,
+        String state_fips,
         Integer year,
         Double prov_rejected_total_detail,
         Double prov_rejected_not_registered,

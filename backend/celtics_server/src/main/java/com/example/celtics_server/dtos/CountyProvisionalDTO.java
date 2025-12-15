@@ -1,9 +1,10 @@
 package com.example.celtics_server.dtos;
 
 public record CountyProvisionalDTO(
-        Integer state_fips,
-        Integer county_fips,
+        String state_fips,
+        String county_fips,
         String juris_name,
+        Double prov_total_cast, //E1a Use case 5
         Double prov_rejected_total_detail,
         Double prov_rejected_not_registered,
         Double prov_rejected_wrong_jurisdiction,

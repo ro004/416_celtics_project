@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface EavsRepository extends MongoRepository<Eavs, String> {
-    List<Eavs> findByStateFipsAndYear(Integer state_fips, Integer year);
+    List<Eavs> findByStateFipsAndYear(String stateFips, Integer year);
+    List<Eavs> findByYear(Integer year);
 }

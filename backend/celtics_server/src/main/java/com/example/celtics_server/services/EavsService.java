@@ -1,14 +1,11 @@
 package com.example.celtics_server.services;
 
-import com.example.celtics_server.dtos.CountyProvisionalDTO;
-import com.example.celtics_server.dtos.ProvisionalDTO;
-import com.example.celtics_server.dtos.ProvisionalViewDTO;
+import com.example.celtics_server.dtos.*;
 import com.example.celtics_server.models.Eavs;
 import com.example.celtics_server.repositories.EavsRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class EavsService {
@@ -18,8 +15,8 @@ public class EavsService {
     public EavsService(EavsRepository eavsRepository) {
         this.eavsRepository = eavsRepository;
     }
-
-    public ProvisionalViewDTO getProvisionalViewForState(Integer stateFips, Integer year) {
+    //GUI Use Cases 3,4,5
+    public ProvisionalViewDTO getProvisionalViewForState(String stateFips, Integer year) {
 
         List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);            //Loads all EAVS for state
 
@@ -42,6 +39,7 @@ public class EavsService {
             }
 
             // per-row values
+            Double rowTotalCast = formatNull(p.prov_total_cast); //gui 5
             Double rowTotalDetail          = formatNull(p.prov_rejected_total_detail);
             Double rowNotRegistered        = formatNull(p.prov_rejected_not_registered);
             Double rowWrongJurisdiction    = formatNull(p.prov_rejected_wrong_jurisdiction);
@@ -68,6 +66,7 @@ public class EavsService {
                     row.getState_fips(),
                     row.getCounty_fips(),
                     row.getJuris_name(),
+                    rowTotalCast,
                     rowTotalDetail,
                     rowNotRegistered,
                     rowWrongJurisdiction,
@@ -98,8 +97,99 @@ public class EavsService {
 
         return new ProvisionalViewDTO(summary, countyDtos);                             //Wrap both DTOs
     }
+    //GUI Use Case 7
+    public ActiveVotersViewDTO getActiveVotersViewForState(String stateFips, Integer year) {
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
 
+        double total = 0.0;
+        double active = 0.0;
+        double inactive = 0.0;
+
+        List<ActiveVotersRegionDTO> regions = new ArrayList<>();
+
+        for (Eavs row : rows) {
+            Eavs.Other o = row.getOther();
+            double rowTotal = formatNull(o == null ? null : o.a12_total);
+            double rowActive = formatNull(o == null ? null : o.a12_active);
+            double rowInactive = formatNull(o == null ? null : o.a12_inactive);
+
+            total += rowTotal;
+            active += rowActive;
+            inactive += rowInactive;
+
+            regions.add(new ActiveVotersRegionDTO(
+                    row.getState_fips(),          // or row.getStateFips()
+                    row.getCounty_fips(),         // or unit_id if you join that way
+                    row.getJuris_name(),
+                    year,
+                    rowTotal,
+                    rowActive,
+                    rowInactive
+            ));
+        }
+
+        ActiveVotersSummaryDTO summary = new ActiveVotersSummaryDTO(
+                Integer.valueOf(stateFips), // only if you made summary state_fips Integer; otherwise keep String
+                year,
+                total,
+                active,
+                inactive
+        );
+
+        return new ActiveVotersViewDTO(summary, regions);
+    }
+
+    //GUI Use Case 12
+    public USEquipmentViewDTO getEquipmentInfo(Integer year){
+        List<Eavs> rows = eavsRepository.findByYear(year);
+
+        // state_fips -> [dreNo, dreWith, bmd, scanner]
+        Map<String, double[]> sums = new HashMap<>();
+        Map<String, String> abbr = new HashMap<>();
+
+        for (Eavs row : rows) {
+            String stateFips = row.getState_fips();
+            if (stateFips == null) continue;
+
+            abbr.putIfAbsent(stateFips, row.getState_abbr());
+
+            Eavs.Other o = row.getOther();
+            double dreNo = formatNull(o.dre_no_vvpat_total);
+            double dreWith = formatNull(o.dre_with_vvpat_total);
+            double bmd = formatNull(o.bmd_total);
+            double scanner = formatNull(o.scanner_total);
+
+            double[] acc = sums.computeIfAbsent(stateFips, k -> new double[4]);
+            acc[0] += dreNo;
+            acc[1] += dreWith;
+            acc[2] += bmd;
+            acc[3] += scanner;
+        }
+
+        List<EquipmentStateDTO> states = new ArrayList<>();
+        for (Map.Entry<String, double[]> e : sums.entrySet()) {
+            String stateFips = e.getKey();
+            double[] acc = e.getValue();
+
+            states.add(new EquipmentStateDTO(
+                    stateFips,
+                    abbr.get(stateFips),
+                    year,
+                    acc[0],
+                    acc[1],
+                    acc[2],
+                    acc[3]
+            ));
+        }
+
+        // optional sort for stable table ordering
+        states.sort(Comparator.comparing(EquipmentStateDTO::state_fips));
+
+        return new USEquipmentViewDTO(year, states);
+    }
     private double formatNull(Double value) {
-        return value == null ? 0.0 : value;
+        if (value == null) return 0.0;
+        else if (value < 0) return 0.0;
+        else return value;
     }
 }

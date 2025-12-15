@@ -14,10 +14,10 @@ public class Eavs {
     private String id;
 
     @Field("state_fips")
-    private Integer state_fips;
+    private String stateFips;
 
     @Field("county_fips")
-    private Integer county_fips;
+    private String county_fips;
 
     @Field("unit_id")
     private Integer unit_id;                                                                   // EAVS unit id
@@ -41,11 +41,11 @@ public class Eavs {
     private Other other;
 
     // getters
-    public Integer getState_fips(){
-        return state_fips;
+    public String getState_fips(){
+        return stateFips;
     }
 
-    public Integer getCounty_fips(){
+    public String getCounty_fips(){
         return county_fips;
     }
 
@@ -56,6 +56,12 @@ public class Eavs {
     public Provisional getProvisional(){
         return provisional;
     }
+
+    public Other getOther() {
+        return other;
+    }
+
+    public String getState_abbr() {return state_abbr;}
 
     // MAIL: mail ballots, rejections, drop boxes – GUI-9, 15, 24, 25
 
