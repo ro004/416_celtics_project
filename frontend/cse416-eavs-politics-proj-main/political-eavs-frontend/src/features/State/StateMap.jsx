@@ -24,6 +24,16 @@ const pseudoValue = (str, min = 10, max = 500) => {
 	return Math.round(min + r * (max - min));
 };
 
+// Build a lookup: region name -> data row
+const buildRegionLookup = (regions) => {
+	const map = new Map();
+	if (!Array.isArray(regions)) return map;
+	regions.forEach((r) => {
+		if (r.region) map.set(r.region.toLowerCase(), r);
+	});
+	return map;
+};
+
 // categorical palette (avoid red/blue)
 const EQUIP_COLORS = {
 	"DRE no VVPAT": "#8e44ad", // purple
@@ -86,6 +96,56 @@ export default function StateMap({
 		[counties]
 	);
 
+	// Build GEOID → value lookup (GUI-5/7/8/9)
+	const valueByGEOID = useMemo(() => {
+		const map = {};
+		if (!Array.isArray(choroplethTotal)) return map;
+
+		choroplethTotal.forEach((row) => {
+			const geoid = row.GEOID || row.countyFips;
+			if (!geoid) return;
+
+			let value = null;
+
+			if (dataCategory === "provisional") {
+				value = Number(row.E2a);
+			} else if (dataCategory === "active") {
+				if (row.Active && row.Total) {
+					value = (row.Active / row.Total) * 100;
+				}
+			} else if (dataCategory === "deletions") {
+				const deletionCodes = ["A12b", "A12c", "A12d", "A12e", "A12f", "A12g", "A12h"];
+				const deletions = deletionCodes.reduce((s, c) => s + (Number(row[c]) || 0), 0);
+				if (row.A1a) value = (deletions / row.A1a) * 100;
+			} else if (dataCategory === "mail_rejects") {
+				const rejectCodes = [
+					"C9b",
+					"C9c",
+					"C9d",
+					"C9e",
+					"C9f",
+					"C9g",
+					"C9h",
+					"C9i",
+					"C9j",
+					"C9k",
+					"C9l",
+					"C9m",
+					"C9n",
+					"C9o",
+					"C9p",
+					"C9q",
+				];
+				const rejects = rejectCodes.reduce((s, c) => s + (Number(row[c]) || 0), 0);
+				if (row.Total) value = (rejects / row.Total) * 100;
+			}
+
+			if (Number.isFinite(value)) map[geoid] = value;
+		});
+
+		return map;
+	}, [choroplethTotal, dataCategory]);
+
 	// style for base state outline
 	const baseStyle = useMemo(
 		() => ({
@@ -117,31 +177,28 @@ export default function StateMap({
 
 	// GUI-5 choropleth style – monochrome orange bins
 	const choroplethStyle = (feature) => {
-		const id = feature.properties.GEOID || feature.properties.NAME || `${feature.properties.COUNTYFP}`;
-		// pick dummy values differently depending on whether category is "count" or "percent"
-		// const val =
-		// 	dataCategory === "provisional"
-		// 		? pseudoValue(id, 20, 1000) // absolute counts
-		// 		: pseudoValue(id, 1, 100); // percentage values
-		if (choroplethTotal === null) {
+		if (!isDetailed) {
 			return { fillOpacity: 0 };
 		}
-		const val = choroplethTotal;
+		const geoid = feature.properties.GEOID;
+		const val = valueByGEOID[geoid];
+		if (val == null) return { fillOpacity: 0 };
 
-		let colors = ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#cc7a00", "#994d00"];
-		let bins = [100, 250, 400, 600, 800, 1000];
-		if (dataCategory !== "provisional") {
-			bins = [20, 40, 60, 80, 100];
-			colors = ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#994d00"];
-		}
+		// Binning
+		const bins = dataCategory === "provisional" ? [100, 250, 400, 600, 800, 1000] : [20, 40, 60, 80, 100];
 
-		let binIndex = bins.findIndex((b) => val <= b);
-		if (binIndex === -1) binIndex = bins.length - 1;
-		const fill = colors[binIndex];
+		const colors =
+			dataCategory === "provisional"
+				? ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#cc7a00", "#994d00"]
+				: ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#994d00"];
+
+		let idx = bins.findIndex((b) => val <= b);
+		if (idx === -1) idx = bins.length - 1;
+
 		return {
-			fillColor: fill,
-			color: "black",
-			weight: 0.5,
+			fillColor: colors[idx],
+			color: "#111",
+			weight: 0.6,
 			fillOpacity: 0.85,
 		};
 	};
@@ -219,9 +276,6 @@ export default function StateMap({
 
 					{/* Voter Bubble Overlay (OK only for now) */}
 					{isDetailed && stateFips === "40" && showBubbles && <VoterBubbleOverlay />}
-
-					{/* NOTE: For other categories (UC-7/8/9), reuse this same pattern with
-              different style functions when you hook real data. */}
 
 					<FitBounds feature={stateFeature} />
 				</MapContainer>

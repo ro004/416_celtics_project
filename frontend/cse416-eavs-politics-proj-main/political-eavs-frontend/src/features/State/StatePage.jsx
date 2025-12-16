@@ -27,7 +27,12 @@ import StateMap from "./StateMap";
 import CategoryBarChart from "./CategoryBarChart";
 import CategoryTable from "./CategoryTable";
 import EquipmentTable from "./EquipmentTable";
-import { getProvBallotSummaryandRegionsList } from "../../api/provBallots";
+import {
+	getMailRejectSummaryandRegionsList,
+	getActiveVoterSummaryandRegionsList,
+	getPollbookDeletionSummaryandRegionsList,
+	getProvBallotSummaryandRegionsList,
+} from "../../api/eavsCategories";
 import { getStateVotingEquipTable } from "../../api/equipment";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
@@ -102,23 +107,47 @@ export default function StatePage() {
 		fetchEquipTable();
 	}, [id]);
 
-	// fetch provisional data when category is "provisional"
+	// fetch categorical data based on drop-down selection (GUI 3-5/7-9)
 	useEffect(() => {
-		if (category !== "provisional") return;
-		const fetchData = async () => {
+		const fetchCategoryData = async () => {
 			try {
-				const data = await getProvBallotSummaryandRegionsList(id, 2024);
+				let data;
+
+				switch (category) {
+					case "provisional":
+						data = await getProvBallotSummaryandRegionsList(id, 2024);
+						break;
+
+					case "active":
+						data = await getActiveVoterSummaryandRegionsList(id, 2024);
+						break;
+
+					case "deletions":
+						data = await getPollbookDeletionSummaryandRegionsList(id, 2024);
+						break;
+
+					case "mail_rejects":
+						data = await getMailRejectSummaryandRegionsList(id, 2024);
+						break;
+
+					default:
+						return;
+				}
+
 				if (data) {
-					setCategorySummary(data.provisionalSummary || {});
+					setCategorySummary(data.summary || {});
 					setCategoryRegions(data.regionsList || []);
-					setCategoryTotal(data.provisionalTotal || null);
+					setCategoryTotal(data.total || null);
 				}
 			} catch (err) {
-				console.error("Failed to load provisional ballot data:", err);
+				console.error(`Failed to load ${category} data:`, err);
+				setCategorySummary({});
+				setCategoryRegions([]);
+				setCategoryTotal(null);
 			}
 		};
 
-		fetchData();
+		fetchCategoryData();
 	}, [id, category]);
 
 	return (

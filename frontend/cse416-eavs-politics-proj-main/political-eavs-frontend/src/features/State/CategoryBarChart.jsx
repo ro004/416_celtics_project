@@ -69,7 +69,7 @@ export default function CategoryBarChart({ category = "provisional", data: exter
 	const [data, setData] = useState([]);
 
 	// pick defs based on category
-	const defs = CATEGORY_DEFS[category] || CATEGORY_DEFS.provisional; // (2) use CATEGORY_DEFS
+	const defs = CATEGORY_DEFS[category] || CATEGORY_DEFS.provisional;
 	const categoryLabels = defs.labels;
 
 	useEffect(() => {
