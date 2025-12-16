@@ -18,10 +18,14 @@ public class Voter {
     @Field("County_Desc")
     private final String county;
 
-    public Voter(String name, String party, String county){
+    @Field("Census_Block")
+    private final String census_block;
+
+    public Voter(String name, String party, String county, String census_block){
         this.name = name;
         this.party = party;
         this.county = county;
+        this.census_block = census_block;
     }
 
     //Getters
@@ -36,5 +40,8 @@ public class Voter {
     }
     public String getCounty(){
         return county;
+    }
+    public String getCensus_block(){
+        return census_block;
     }
 }

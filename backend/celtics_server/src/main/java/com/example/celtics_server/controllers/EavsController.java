@@ -1,5 +1,6 @@
 package com.example.celtics_server.controllers;
 
+import com.example.celtics_server.dtos.EAVSPoliticalComparisonDTO;
 import com.example.celtics_server.dtos.ProvisionalViewDTO;
 import com.example.celtics_server.dtos.ActiveVotersViewDTO;
 import com.example.celtics_server.dtos.USEquipmentViewDTO;
@@ -37,5 +38,13 @@ public class EavsController {
             @PathVariable Integer year
     ){
         return eavsService.getEquipmentInfo(year);
+    }
+    //GUI 15
+    @GetMapping("/politicalcomparison/{stateFips}/{year}")
+    public EAVSPoliticalComparisonDTO getPoliticalStateComparison(
+            @PathVariable String stateFips,
+            @PathVariable Integer year
+    ){
+        return eavsService.getPoliticalStateComparisonView(stateFips, year);
     }
 }

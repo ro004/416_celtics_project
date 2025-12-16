@@ -17,7 +17,7 @@ public class FelonyPolicyController {
         this.felonyPolicyService = felonyPolicyService;
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public List<FelonyPolicy> getAllPolicies() {
         return felonyPolicyService.getAllPolicies();
     }

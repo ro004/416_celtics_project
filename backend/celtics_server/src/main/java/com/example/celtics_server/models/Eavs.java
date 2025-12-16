@@ -61,6 +61,12 @@ public class Eavs {
         return other;
     }
 
+    public Mail getMail(){
+        return mail;
+    }
+    public Early getEarly(){
+        return early;
+    }
     public String getState_abbr() {return state_abbr;}
 
     // MAIL: mail ballots, rejections, drop boxes – GUI-9, 15, 24, 25

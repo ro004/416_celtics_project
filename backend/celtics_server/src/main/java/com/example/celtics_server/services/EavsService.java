@@ -187,6 +187,51 @@ public class EavsService {
 
         return new USEquipmentViewDTO(year, states);
     }
+
+    //GUI Use Case 15
+    public EAVSPoliticalComparisonDTO getPoliticalStateComparisonView(String stateFips, Integer year) {
+
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+
+        double totalBallotsAllMethods = 0.0;   // denominator for mail/dropbox %
+        double mailVotes = 0.0;                // numerator for mail %
+        double dropboxBallotsReturned = 0.0;   // numerator for dropbox %
+        double registeredTotal = 0.0;          // denominator for turnout %
+
+        for (Eavs row : rows) {
+
+            Eavs.Early e = row.getEarly();
+            totalBallotsAllMethods += formatNull(e == null ? null : e.total_voters_all_methods);
+
+            Eavs.Mail m = row.getMail();
+            mailVotes += formatNull(m == null ? null : m.mail_votes);
+            dropboxBallotsReturned += formatNull(m == null ? null : m.dropbox_ballots_returned);
+
+            Eavs.Other o = row.getOther();
+            registeredTotal += formatNull(o == null ? null : o.a12_total);
+        }
+
+        double percentMail = (totalBallotsAllMethods == 0.0)
+                ? 0.0
+                : (mailVotes / totalBallotsAllMethods) * 100.0;
+
+        double percentDropbox = (totalBallotsAllMethods == 0.0)
+                ? 0.0
+                : (dropboxBallotsReturned / totalBallotsAllMethods) * 100.0;
+
+        double percentTurnout = (registeredTotal == 0.0)
+                ? 0.0
+                : (totalBallotsAllMethods / registeredTotal) * 100.0;
+
+        return new EAVSPoliticalComparisonDTO(
+                stateFips,
+                year,
+                percentMail,
+                percentDropbox,
+                percentTurnout
+        );
+    }
+
     private double formatNull(Double value) {
         if (value == null) return 0.0;
         else if (value < 0) return 0.0;
