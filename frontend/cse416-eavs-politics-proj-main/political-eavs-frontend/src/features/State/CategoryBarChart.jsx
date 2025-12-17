@@ -75,18 +75,13 @@ export default function CategoryBarChart({ category = "provisional", data: exter
 	useEffect(() => {
 		if (externalData && typeof externalData === "object") {
 			// Convert backend object --> {category: value} map
-			const formatted = Object.entries(externalData).map(([code, value]) => ({
-				category: code,
-				value: Number(value) || 0,
-			}));
+			const formatted = Object.entries(externalData)
+				.filter(([code]) => code in categoryLabels)
+				.map(([code, value]) => ({
+					category: code,
+					value: Number(value) || 0,
+				}));
 			setData(formatted);
-		} else {
-			// Fallback mock data (keeps your prototype working)
-			const mock = Object.keys(categoryLabels).map((code) => ({
-				category: code,
-				value: Math.floor(Math.random() * 120 + 20),
-			}));
-			setData(mock);
 		}
 	}, [externalData, category, categoryLabels]); // rerun on category changes
 
@@ -150,7 +145,7 @@ export default function CategoryBarChart({ category = "provisional", data: exter
 
 		svg.append("text")
 			.attr("transform", "rotate(-90)")
-			.attr("y", 20)
+			.attr("y", 15)
 			.attr("x", -(height / 2))
 			.attr("text-anchor", "middle")
 			.style("fill", "#eee")
