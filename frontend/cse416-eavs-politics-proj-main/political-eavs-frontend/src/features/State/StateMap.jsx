@@ -24,16 +24,6 @@ const pseudoValue = (str, min = 10, max = 500) => {
 	return Math.round(min + r * (max - min));
 };
 
-// Build a lookup: region name -> data row
-const buildRegionLookup = (regions) => {
-	const map = new Map();
-	if (!Array.isArray(regions)) return map;
-	regions.forEach((r) => {
-		if (r.region) map.set(r.region.toLowerCase(), r);
-	});
-	return map;
-};
-
 // categorical palette (avoid red/blue)
 const EQUIP_COLORS = {
 	"DRE no VVPAT": "#8e44ad", // purple
@@ -80,7 +70,7 @@ export default function StateMap({
 	equipmentMode, // "none" | "type"
 	countyFeatures, // full county geojson Feature[] (all 4 detailed states)
 	showBubbles, // boolean, whether to show voter bubbles (OK only for now)
-	choroplethTotal, // total value for choropleth
+	choroplethTotal, // same as GUI-4 data.counties (array of county objects)
 }) {
 	// filter counties for this state only once
 	const counties = useMemo(() => {
@@ -96,55 +86,20 @@ export default function StateMap({
 		[counties]
 	);
 
-	// Build GEOID → value lookup (GUI-5/7/8/9)
-	const valueByGEOID = useMemo(() => {
-		const map = {};
+	// Build county GEOID -> prov_total_cast lookup (GUI-5)
+	const provTotalByCounty = useMemo(() => {
+		const map = new Map();
+
 		if (!Array.isArray(choroplethTotal)) return map;
 
 		choroplethTotal.forEach((row) => {
-			const geoid = row.GEOID || row.countyFips;
-			if (!geoid) return;
-
-			let value = null;
-
-			if (dataCategory === "provisional") {
-				value = Number(row.E2a);
-			} else if (dataCategory === "active") {
-				if (row.Active && row.Total) {
-					value = (row.Active / row.Total) * 100;
-				}
-			} else if (dataCategory === "deletions") {
-				const deletionCodes = ["A12b", "A12c", "A12d", "A12e", "A12f", "A12g", "A12h"];
-				const deletions = deletionCodes.reduce((s, c) => s + (Number(row[c]) || 0), 0);
-				if (row.A1a) value = (deletions / row.A1a) * 100;
-			} else if (dataCategory === "mail_rejects") {
-				const rejectCodes = [
-					"C9b",
-					"C9c",
-					"C9d",
-					"C9e",
-					"C9f",
-					"C9g",
-					"C9h",
-					"C9i",
-					"C9j",
-					"C9k",
-					"C9l",
-					"C9m",
-					"C9n",
-					"C9o",
-					"C9p",
-					"C9q",
-				];
-				const rejects = rejectCodes.reduce((s, c) => s + (Number(row[c]) || 0), 0);
-				if (row.Total) value = (rejects / row.Total) * 100;
-			}
-
-			if (Number.isFinite(value)) map[geoid] = value;
+			// county_fips is already a full GEOID (e.g. "35001")
+			if (!row.county_fips) return;
+			map.set(row.county_fips, Number(row.prov_total_cast));
 		});
 
 		return map;
-	}, [choroplethTotal, dataCategory]);
+	}, [choroplethTotal]);
 
 	// style for base state outline
 	const baseStyle = useMemo(
@@ -181,8 +136,8 @@ export default function StateMap({
 			return { fillOpacity: 0 };
 		}
 		const geoid = feature.properties.GEOID;
-		const val = valueByGEOID[geoid];
-		if (val == null) return { fillOpacity: 0 };
+		let value = provTotalByCounty.get(geoid);
+		if (value == null) value = 0;
 
 		// Binning
 		const bins = dataCategory === "provisional" ? [100, 250, 400, 600, 800, 1000] : [20, 40, 60, 80, 100];
@@ -192,7 +147,7 @@ export default function StateMap({
 				? ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#cc7a00", "#994d00"]
 				: ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#994d00"];
 
-		let idx = bins.findIndex((b) => val <= b);
+		let idx = bins.findIndex((b) => value <= b);
 		if (idx === -1) idx = bins.length - 1;
 
 		return {

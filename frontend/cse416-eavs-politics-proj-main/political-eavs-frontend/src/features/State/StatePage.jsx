@@ -137,7 +137,7 @@ export default function StatePage() {
 				if (data) {
 					setCategorySummary(data.summary || {});
 					setCategoryRegions(data.counties || []);
-					setCategoryTotal(data.total || null);
+					setCategoryTotal(data.counties || null);
 				}
 			} catch (err) {
 				console.error(`Failed to load ${category} data:`, err);
