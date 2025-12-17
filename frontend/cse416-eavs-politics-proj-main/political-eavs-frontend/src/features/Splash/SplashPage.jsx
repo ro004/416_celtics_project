@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +23,7 @@ import EquipmentAgeChoropleth from "./EquipmentAgeChoropleth";
 import EquipmentSummaryTable from "./EquipmentSummaryTable";
 import EquipmentByStateModal from "./EquipmentByStateModal";
 import CompareModal from "./CompareModal";
+import { getVotingEquipmentByState } from "../../api/equipment";
 
 // styled red reset button
 const ResetButton = styled(Button)(({ theme }) => ({
@@ -40,6 +41,24 @@ export default function SplashPage() {
 	const [isSummary, setSummary] = useState(false); // false = nothing, true = equipment summary table
 	const [selectedEquipTableState, setSelectedEquipTableState] = useState(null);
 	const [compareMode, setCompareMode] = useState(null);
+
+	// Data state for equipment by state table (GUI-12)
+	const [equipmentByStateRows, setEquipmentByStateRows] = useState([]);
+
+	// fetch equipment by state data (GUI-12) on mount
+	useEffect(() => {
+		const fetchEquipment = async () => {
+			try {
+				const data = await getVotingEquipmentByState(2024);
+				setEquipmentByStateRows(data.states || []);
+			} catch (err) {
+				console.error("Failed to load GUI-12 equipment data", err);
+				setEquipmentByStateRows([]);
+			}
+		};
+
+		fetchEquipment();
+	}, []);
 
 	// record stacking order (so the most recent toggle appears on top)
 	const [stackOrder, setStackOrder] = useState([]);
@@ -194,6 +213,7 @@ export default function SplashPage() {
 												flexDirection: "column",
 											}}>
 											<EquipmentByStateTable
+												rowsData={equipmentByStateRows}
 												onSelectState={(name) => setSelectedEquipTableState(name)}
 											/>
 										</Box>
