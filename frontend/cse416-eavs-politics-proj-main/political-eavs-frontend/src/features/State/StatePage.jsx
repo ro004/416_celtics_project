@@ -33,7 +33,7 @@ import {
 	getPollbookDeletionSummaryandRegionsList,
 	getProvBallotSummaryandRegionsList,
 } from "../../api/eavsCategories";
-import { getStateVotingEquipTable } from "../../api/equipment";
+//import { getStateVotingEquipTable } from "../../api/equipment";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
 const POLITICAL_PARTY_DETAILED = ["DE", "SC"];
@@ -86,7 +86,7 @@ export default function StatePage() {
 	const [categoryTotal, setCategoryTotal] = useState(null); // GUI-5 total for choropleth
 
 	// Data states for state voting equipment table
-	const [equipTableData, setEquipTableData] = useState([]); // GUI-6 data for equipment table
+	// const [equipTableData, setEquipTableData] = useState([]); // GUI-6 data for equipment table
 
 	// mock CVAP values for now
 	const registeredVoters = 1000000;
@@ -94,18 +94,18 @@ export default function StatePage() {
 	const cvapPct = ((registeredVoters / cvap) * 100).toFixed(1);
 
 	// fetch voting equipment table data on mount
-	useEffect(() => {
-		const fetchEquipTable = async () => {
-			try {
-				const data = await getStateVotingEquipTable(id);
-				setEquipTableData(data || []);
-			} catch (err) {
-				console.error("Failed to load equipment table:", err);
-			}
-		};
+	// useEffect(() => {
+	// 	const fetchEquipTable = async () => {
+	// 		try {
+	// 			const data = await getStateVotingEquipTable(id);
+	// 			setEquipTableData(data || []);
+	// 		} catch (err) {
+	// 			console.error("Failed to load equipment table:", err);
+	// 		}
+	// 	};
 
-		fetchEquipTable();
-	}, [id]);
+	// 	fetchEquipTable();
+	// }, [id]);
 
 	// fetch categorical data based on drop-down selection (GUI 3-5/7-9)
 	useEffect(() => {
@@ -136,7 +136,7 @@ export default function StatePage() {
 
 				if (data) {
 					setCategorySummary(data.summary || {});
-					setCategoryRegions(data.regionsList || []);
+					setCategoryRegions(data.counties || []);
 					setCategoryTotal(data.total || null);
 				}
 			} catch (err) {
@@ -300,7 +300,7 @@ export default function StatePage() {
 								<CategoryTable
 									category={category}
 									isPolitical={isPoliticalPartyDetailed}
-									rows={categoryRegions}
+									rowsData={categoryRegions}
 								/>
 							</Paper>
 						</Box>
@@ -313,7 +313,7 @@ export default function StatePage() {
 								overflow: "hidden",
 								p: 1,
 							}}>
-							<EquipmentTable rows={equipTableData} />
+							<EquipmentTable /** rowsData={equipTableData} **/ />
 						</Box>
 					</Paper>
 				</Box>

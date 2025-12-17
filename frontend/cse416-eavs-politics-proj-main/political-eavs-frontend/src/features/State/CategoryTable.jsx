@@ -38,14 +38,42 @@ const CATEGORY_COLUMNS = {
 export default function CategoryTable({ category = "provisional", rowsData }) {
 	const codes = CATEGORY_COLUMNS[category] || CATEGORY_COLUMNS.provisional;
 
-	// rowsData should be an array of county objects:
-	// [{ region: "Denver", E2a: 12, E2b: 4, ... }, ...]
-	const rows = Array.isArray(rowsData)
-		? rowsData.map((row) => ({
-				...row,
-				total: codes.reduce((sum, code) => sum + (Number(row[code]) || 0), 0),
-		  }))
-		: [];
+	let rows = [];
+	if (category === "provisional") {
+		rows = Array.isArray(rowsData)
+			? rowsData.map((r) => {
+					const row = {
+						region: r.juris_name,
+
+						E2a: Number(r.prov_rejected_total_detail),
+						E2b: Number(r.prov_rejected_not_registered),
+						E2c: Number(r.prov_rejected_wrong_jurisdiction),
+						E2d: Number(r.prov_rejected_wrong_precinct),
+						E2e: Number(r.prov_rejected_no_id),
+						E2f: Number(r.prov_rejected_incomplete),
+						E2g: Number(r.prov_rejected_ballot_missing),
+						E2h: Number(r.prov_rejected_no_signature),
+						E2i: Number(r.prov_rejected_bad_signature),
+						Other: 0,
+					};
+
+					// total (sum of E2 columns)
+					row.total =
+						row.E2a +
+						row.E2b +
+						row.E2c +
+						row.E2d +
+						row.E2e +
+						row.E2f +
+						row.E2g +
+						row.E2h +
+						row.E2i +
+						row.Other;
+
+					return row;
+			  })
+			: [];
+	}
 
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(3);
