@@ -212,6 +212,7 @@ public class EavsService {
             counties.add(new CountyMailRejectionDTO(
                     r.getState_fips(),
                     r.getCounty_fips(),
+                    r.getJuris_name(),
                     formatNull(m.mail_rejected_total),   // keep raw if you want, or formatNull
                     pctOfState,
 
@@ -335,6 +336,59 @@ public class EavsService {
         );
     }
 
+    public List<OptInOptOutDTO> getOptInOptOutComparisons(int year) {
+        OptInOptOutDTO sc = optHelper("45", "South Carolina", "South Carolina: Opt-In", year);
+        OptInOptOutDTO co = optHelper("8", "Colorado", "Colorado: Opt-Out (Same-Day Registration)", year);
+        OptInOptOutDTO de = optHelper("10", "Delaware", "Delaware: Opt-Out (No Same-Day Registration)", year);
+
+        return List.of(sc, co, de);
+    }
+
+    private OptInOptOutDTO optHelper(
+            String stateFips,
+            String stateName,
+            String stateTypeLabel,
+            int year
+    ) {
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+
+        long registeredTotal = 0L;
+        double ballotsCast = 0.0;
+
+        for (Eavs row : rows) {
+            // registration total: SUM of counties
+            if (row.getOther() != null && row.getOther().a12_total != null) {
+                registeredTotal += row.getOther().a12_total.longValue();
+            }
+
+            // ballots cast: MAX (statewide row tends to exist)
+            if (row.getEarly() != null && row.getEarly().total_voters_all_methods != null) {
+                ballotsCast = Math.max(ballotsCast, row.getEarly().total_voters_all_methods);
+            }
+        }
+
+        long cvapTotal = cdcvapService.getStateCvapTotal(stateName);
+
+        // Fallback for Colorado (CVAP not in DB)
+        if (cvapTotal == 0 && "Colorado".equals(stateName) && year == 2024) {
+            cvapTotal = 4303430;   // define this constant in the service
+        }
+
+        Double registrationRate = (cvapTotal == 0) ? null : (registeredTotal * 100.0) / cvapTotal;
+        Double turnoutRate = (registeredTotal == 0) ? null : (ballotsCast * 100.0) / registeredTotal;
+
+        return new OptInOptOutDTO(
+                stateName,
+                stateTypeLabel,   // reusing "party" field as "stateType"
+                registeredTotal,
+                registrationRate,
+                ballotsCast,
+                turnoutRate
+        );
+    }
+
+
+    //GUI 22
     public List<PoliticalStateComparisonDTO> getPoliticalStateComparisons(int year) {
         PoliticalStateComparisonDTO sc = polStateHelper("45", "South Carolina", "Republican", year);
         PoliticalStateComparisonDTO de = polStateHelper("10", "Delaware", "Democratic", year);
@@ -379,6 +433,58 @@ public class EavsService {
         );
     }
 
+    public List<PoliticalEarlyVotingComparisonDTO> getPoliticalEarlyVotingComparisons(int year) {
+        PoliticalEarlyVotingComparisonDTO sc = polEarlyHelper("45", "South Carolina", "Republican", year);
+        PoliticalEarlyVotingComparisonDTO de = polEarlyHelper("10", "Delaware", "Democratic", year);
+        return List.of(sc, de);
+    }
+
+    private PoliticalEarlyVotingComparisonDTO polEarlyHelper(
+            String stateFips,
+            String stateName,
+            String party,
+            int year
+    ) {
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+
+        double totalVotes = 0.0;
+        double earlyTotal = 0.0;
+        double inPersonEarly = 0.0;
+        double mailEarly = 0.0;
+
+        for (Eavs row : rows) {
+            if (row.getEarly() == null) continue;
+
+            if (row.getEarly().total_voters_all_methods != null) {
+                totalVotes = Math.max(totalVotes, row.getEarly().total_voters_all_methods);
+            }
+            if (row.getEarly().early_total != null) {
+                earlyTotal = Math.max(earlyTotal, row.getEarly().early_total);
+            }
+            if (row.getEarly().early_in_person_votes != null) {
+                inPersonEarly = Math.max(inPersonEarly, row.getEarly().early_in_person_votes);
+            }
+            if (row.getEarly().absentee_uocava != null) {
+                mailEarly = Math.max(mailEarly, row.getEarly().absentee_uocava);
+            }
+        }
+
+        Double earlyRate = (totalVotes == 0) ? null : (earlyTotal * 100.0) / totalVotes;
+        Double inPersonRate = (totalVotes == 0) ? null : (inPersonEarly * 100.0) / totalVotes;
+        Double mailRate = (totalVotes == 0) ? null : (mailEarly * 100.0) / totalVotes;
+
+        return new PoliticalEarlyVotingComparisonDTO(
+                stateName,
+                party,
+                totalVotes,
+                earlyTotal,
+                earlyRate,
+                inPersonEarly,
+                inPersonRate,
+                mailEarly,
+                mailRate
+        );
+    }
 
     private double formatNull(Double value) {
         if (value == null) return 0.0;

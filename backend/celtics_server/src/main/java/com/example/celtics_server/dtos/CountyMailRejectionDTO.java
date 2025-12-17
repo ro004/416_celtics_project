@@ -3,6 +3,7 @@ package com.example.celtics_server.dtos;
 public record CountyMailRejectionDTO(
         String state_fips,
         String county_fips,
+        String juris_name,
         Double mail_rejected_total, // C9a (useful for choropleth numerator)
         Double rejection_pct_of_state, // choropleth value (% of total rejected in state)
 

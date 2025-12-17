@@ -52,12 +52,27 @@ public class EavsController {
     ){
         return eavsService.getPoliticalStateComparisonView(stateFips, year);
     }
-
     //GUI 21
+    @GetMapping("/OptInOptOut/{year}")
+    public List<OptInOptOutDTO> getOptInOptOutTableComparison(
+            @PathVariable Integer year
+    ){
+        return eavsService.getOptInOptOutComparisons(year);
+    }
+
+    //GUI 22
     @GetMapping("/political-states-comparison/{year}")
     public List<PoliticalStateComparisonDTO> getPoliticalStateTableComparison(
             @PathVariable Integer year
     ){
         return eavsService.getPoliticalStateComparisons(year);
     }
+    //GUI 23
+    @GetMapping("/early-voting/{year}")
+    public List<PoliticalEarlyVotingComparisonDTO> getPoliticalEarlyVotingComparison(
+            @PathVariable int year
+    ) {
+        return eavsService.getPoliticalEarlyVotingComparisons(year);
+    }
+
 }
