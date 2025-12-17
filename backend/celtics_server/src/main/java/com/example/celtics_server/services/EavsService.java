@@ -140,6 +140,108 @@ public class EavsService {
         return new ActiveVotersViewDTO(summary, regions);
     }
 
+    public MailRejectionViewDTO getMailRejectionViewForState(String stateFips, Integer year) {
+
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+
+        // Hardcoded detailed-data states
+        boolean detailedDataState = Set.of("10", "45", "40", "8").contains(stateFips);
+        // DE=10, SC=45, OK=40, CO=8
+
+        // -----------------------------
+        // Statewide totals (bar chart)
+        // -----------------------------
+        double C9b = 0, C9c = 0, C9d = 0, C9e = 0, C9f = 0, C9g = 0, C9h = 0, C9i = 0;
+        double C9j = 0, C9k = 0, C9l = 0, C9m = 0, C9n = 0, C9o = 0, C9p = 0, C9q = 0;
+
+        // Denominator for choropleth (C9a)
+        double stateTotalRejected = 0.0;
+
+        for (Eavs r : rows) {
+            Eavs.Mail m = r.getMail();
+            if (m == null) continue;
+
+            stateTotalRejected += formatNull(m.mail_rejected_total);
+
+            C9b += formatNull(m.mail_rejected_late);
+            C9c += formatNull(m.mail_rejected_missing_voter_signature);
+            C9d += formatNull(m.mail_rejected_missing_witness_signature);
+            C9e += formatNull(m.mail_rejected_bad_signature_voter);
+            C9f += formatNull(m.mail_rejected_unofficial_envelope);
+            C9g += formatNull(m.mail_rejected_ballot_missing_from_envelope);
+            C9h += formatNull(m.mail_rejected_no_secrecy_envelope);
+            C9i += formatNull(m.mail_rejected_multiple_in_envelope);
+            C9j += formatNull(m.mail_rejected_envelope_not_sealed);
+            C9k += formatNull(m.mail_rejected_no_postmark);
+            C9l += formatNull(m.mail_rejected_no_resident_address);
+            C9m += formatNull(m.mail_rejected_voter_deceased);
+            C9n += formatNull(m.mail_rejected_already_voted);
+            C9o += formatNull(m.mail_rejected_missing_docs);
+            C9p += formatNull(m.mail_rejected_not_eligible);
+            C9q += formatNull(m.mail_rejected_no_application);
+        }
+
+        MailRejectionDTO summary = new MailRejectionDTO(
+                stateFips,
+                year,
+                C9b,
+                C9c,
+                C9d,
+                C9e,
+                C9f,
+                C9g,
+                C9h,
+                C9i,
+                C9j, C9k, C9l, C9m, C9n, C9o, C9p, C9q
+        );
+
+        // -----------------------------
+        // Table rows + choropleth values
+        // -----------------------------
+        List<CountyMailRejectionDTO> counties = new ArrayList<>();
+
+        for (Eavs r : rows) {
+            Eavs.Mail m = r.getMail();
+            if (m == null) continue;
+
+            double unitRejected = formatNull(m.mail_rejected_total);
+            double pctOfState = (stateTotalRejected > 0)
+                    ? (unitRejected / stateTotalRejected) * 100.0
+                    : 0.0;
+
+            counties.add(new CountyMailRejectionDTO(
+                    r.getState_fips(),
+                    r.getCounty_fips(),
+                    formatNull(m.mail_rejected_total),   // keep raw if you want, or formatNull
+                    pctOfState,
+
+                    formatNull(m.mail_rejected_late),
+                    formatNull(m.mail_rejected_missing_voter_signature),
+                    formatNull(m.mail_rejected_missing_witness_signature),
+                    formatNull(m.mail_rejected_bad_signature_voter),
+                    formatNull(m.mail_rejected_unofficial_envelope),
+                    formatNull(m.mail_rejected_ballot_missing_from_envelope),
+                    formatNull(m.mail_rejected_no_secrecy_envelope),
+                    formatNull(m.mail_rejected_multiple_in_envelope),
+                    formatNull(m.mail_rejected_envelope_not_sealed),
+                    formatNull(m.mail_rejected_no_postmark),
+                    formatNull(m.mail_rejected_no_resident_address),
+                    formatNull(m.mail_rejected_voter_deceased),
+                    formatNull(m.mail_rejected_already_voted),
+                    formatNull(m.mail_rejected_missing_docs),
+                    formatNull(m.mail_rejected_not_eligible),
+                    formatNull(m.mail_rejected_no_application)
+            ));
+
+        }
+
+        return new MailRejectionViewDTO(
+                summary,
+                counties,
+                detailedDataState
+        );
+    }
+
     //GUI Use Case 12
     public USEquipmentViewDTO getEquipmentInfo(Integer year){
         List<Eavs> rows = eavsRepository.findByYear(year);

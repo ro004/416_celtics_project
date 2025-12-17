@@ -23,7 +23,13 @@ public class EavsController {
     ) {
         return eavsService.getProvisionalViewForState(stateFips, year);
     }
-
+    @GetMapping("/mailrejections/{stateFips}/{year}")
+    public MailRejectionViewDTO getMailRejectionForState(
+            @PathVariable String stateFips,
+            @PathVariable Integer year
+    ){
+        return eavsService.getMailRejectionViewForState(stateFips, year);
+    }
     @GetMapping("/activevoters/{stateFips}/{year}")
     public ActiveVotersViewDTO getActiveVotersForState(
             @PathVariable String stateFips,

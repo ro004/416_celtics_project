@@ -77,27 +77,26 @@ public class Eavs {
 
         public Double mail_votes_share;
         public Double mail_counted_total;            // counted absentee – for turnout denom
-        public Double mail_rejected_total;           // C9a – used in rejected-ballot % (GUI-25)
-        public Double mail_rejected_late;
+        public Double mail_rejected_total;                          // C9a – used in rejected-ballot % (GUI-25)
+        public Double mail_rejected_late;                           //C9b
+        public Double mail_rejected_missing_voter_signature;        //c9c
+        public Double mail_rejected_missing_witness_signature;      //c9d
+        public Double mail_rejected_bad_signature_voter;            //c9e
+        public Double mail_rejected_unofficial_envelope;            //c9f
+        public Double mail_rejected_ballot_missing_from_envelope;   //c9g
+        public Double mail_rejected_no_secrecy_envelope;            //c9h
+        public Double mail_rejected_multiple_in_envelope;           //c9i
+        public Double mail_rejected_envelope_not_sealed;            //c9j
+        public Double mail_rejected_no_postmark;                    //c9k
+        public Double mail_rejected_no_resident_address;            //c9l
+        public Double mail_rejected_voter_deceased;                 //c9m
+        public Double mail_rejected_already_voted;                  //c9n
+        public Double mail_rejected_missing_docs;                   //c9o
+        public Double mail_rejected_not_eligible;                   //c9p
+        public Double mail_rejected_no_application;                 //c9q
 
-        // Rejection reasons – needed for rejected-ballot analysis & future GUI-9
-        public Double mail_rejected_missing_voter_signature;
-        public Double mail_rejected_missing_witness_signature;
-        public Double mail_rejected_bad_signature_voter;
-        public Double mail_rejected_unofficial_envelope;
-        public Double mail_rejected_ballot_missing_from_envelope;
-        public Double mail_rejected_no_secrecy_envelope;
-        public Double mail_rejected_multiple_in_envelope;
-        public Double mail_rejected_envelope_not_sealed;
-        public Double mail_rejected_no_postmark;
-        public Double mail_rejected_no_resident_address;
-        public Double mail_rejected_voter_deceased;
-        public Double mail_rejected_already_voted;
-        public Double mail_rejected_missing_docs;
-        public Double mail_rejected_not_eligible;
-        public Double mail_rejected_no_application;
-        public Double mail_rejected_other_1;
-        public Double mail_rejected_other_2;
+        public Double mail_rejected_other_1;                        //c9p
+        public Double mail_rejected_other_2;                        //c9q
         public Double mail_rejected_other_3;
 
         // Drop box data – GUI-15, GUI-24 (C3a)
