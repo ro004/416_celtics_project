@@ -16,6 +16,15 @@ public class EavsController {
         this.eavsService = eavsService;
     }
 
+    @GetMapping("/cvapPct/{stateFips}")
+    public CvapPctDTO getCvapPct(@PathVariable String stateFips) {
+        String stateName = "invalid";
+        // however you already map FIPS → state name
+        if ("10".equals(stateFips)) stateName = "Delaware";
+        if ("45".equals(stateFips)) stateName = "South Carolina";
+
+        return eavsService.getCvapEligibilityPct(stateFips, stateName);
+    }
     @GetMapping("/provisional/{stateFips}/{year}")
     public ProvisionalViewDTO getProvisionalForState(
             @PathVariable String stateFips,
@@ -29,6 +38,14 @@ public class EavsController {
             @PathVariable Integer year
     ){
         return eavsService.getMailRejectionViewForState(stateFips, year);
+    }
+    //GUI Use Case 10
+    @GetMapping("/equipment/{stateFips}/{year}")
+    public List<VotingEquipmentDTO> getVotingEquipment(
+            @PathVariable String stateFips,
+            @PathVariable Integer year
+    ) {
+        return eavsService.getVotingEquipmentForState(stateFips, year);
     }
     @GetMapping("/activevoters/{stateFips}/{year}")
     public ActiveVotersViewDTO getActiveVotersForState(

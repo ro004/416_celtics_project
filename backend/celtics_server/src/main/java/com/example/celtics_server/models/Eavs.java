@@ -64,6 +64,9 @@ public class Eavs {
     public Mail getMail(){
         return mail;
     }
+    public Equipment getEquipment(){
+        return equipment;
+    }
     public Early getEarly(){
         return early;
     }

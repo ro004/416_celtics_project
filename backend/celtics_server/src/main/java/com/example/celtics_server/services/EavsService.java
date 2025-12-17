@@ -16,6 +16,37 @@ public class EavsService {
         this.eavsRepository = eavsRepository;
         this.cdcvapService = cdcvapService;
     }
+    //GUI Use case 2
+    public CvapPctDTO getCvapEligibilityPct(String stateFips, String stateName) {
+
+        // Only Political Party detailed states (your project definition)
+        if (!Set.of("10", "45").contains(stateFips)) {
+            return new CvapPctDTO(null);
+        }
+
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, 2024);
+
+        // Numerator: SUM of registered voters (A12 total)
+        long registeredTotal = 0L;
+        for (Eavs row : rows) {
+            if (row.getOther() != null && row.getOther().a12_total != null) {
+                registeredTotal += row.getOther().a12_total.longValue();
+            }
+        }
+
+        // Denominator: 2023 ACS CVAP
+        long cvapTotal = cdcvapService.getStateCvapTotal(stateName);
+
+        // Guard against missing CVAP
+        if (cvapTotal == 0) {
+            return new CvapPctDTO(null);
+        }
+
+        Double pct = (registeredTotal * 100.0) / cvapTotal;
+
+        return new CvapPctDTO(pct);
+    }
+
     //GUI Use Cases 3,4,5
     public ProvisionalViewDTO getProvisionalViewForState(String stateFips, Integer year) {
 
@@ -242,6 +273,40 @@ public class EavsService {
                 detailedDataState
         );
     }
+    //GUI Use Case 10
+    public List<VotingEquipmentDTO> getVotingEquipmentForState(String stateFips, Integer year) {
+
+        // GUI-10 only applies to detailed states
+        if (!Set.of("10", "45", "40", "8").contains(stateFips)) {
+            return List.of();
+        }
+
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+        List<VotingEquipmentDTO> result = new ArrayList<>();
+
+        for (Eavs r : rows) {
+            Eavs.Equipment e = r.getEquipment();
+            if (e == null) continue;
+
+            boolean dreNoVvpat = e.equip_dre_novvpat_available != null && e.equip_dre_novvpat_available > 0;
+            boolean dreWithVvpat = e.equip_dre_vvpat_available != null && e.equip_dre_vvpat_available > 0;
+            boolean bmd = e.equip_bmd_available != null && e.equip_bmd_available > 0;
+            boolean scanner = e.equip_scanner_available != null && e.equip_scanner_available > 0;
+
+            result.add(new VotingEquipmentDTO(
+                    r.getState_fips(),
+                    r.getCounty_fips(),
+                    r.getJuris_name(),
+                    dreNoVvpat,
+                    dreWithVvpat,
+                    bmd,
+                    scanner
+            ));
+        }
+
+        return result;
+    }
+
 
     //GUI Use Case 12
     public USEquipmentViewDTO getEquipmentInfo(Integer year){
