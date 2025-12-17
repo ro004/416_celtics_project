@@ -1,49 +1,16 @@
+//ComparisonTable.jsx
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from "@mui/material";
-import {useEffect, useState} from "react";
-import { getDelawareData, getSouthCarolinaData } from "../../api/stateVotes";
+//import { useEffect, useState } from "react";
+// import { getDelawareData, getSouthCarolinaData } from "../../api/stateVotes";
 
-export default function ComparisonTable({ mode }) {
+export default function ComparisonTable({ mode, data }) {
 	let headers = [];
 	let rows = [];
-	//add state variables instead later when we have data for all columns
-	//const [rows, setRows] = useState([]);
-	//const [headers, setHeaders] = useState([]);
-	//for now, we store in temp variables
-	const [delawareTotal, setDelawareTotal] = useState(0);
-	const [southCarolinaTotal, setSouthCarolinaTotal] = useState(0);
 
-	//Get total voters in dem delaware and rep SC
-	useEffect(() => {
-		async function fetchTotals(){
-			if (mode === "reg-comp" || mode === "opt-in-out") {
-				try {
-					const [delaware, southCarolina] = await Promise.all([
-						getDelawareData(), getSouthCarolinaData(),
-					]);
-					let delaware_dem = 0, delaware_rep = 0;
-					console.log("Delaware: ", delaware);
-					console.log("SouthC:", southCarolina);
-					//helper function to parseCount from string to int
-					const parseCount = (count) => parseInt(count.replace(/,/g, ""), 10) || 0;
-					delaware.forEach((county) => {
-						delaware_dem += parseCount(county.votes.democrat.count);
-						delaware_rep += parseCount(county.votes.republican.count);
-					});
-					setDelawareTotal(delaware_dem + delaware_rep);
-
-					let sC_dem = 0, sC_rep = 0;
-					southCarolina.forEach((county) => {
-						sC_dem += parseCount(county.votes.democrat.count);
-						sC_rep += parseCount(county.votes.republican.count);
-					});
-					setSouthCarolinaTotal(sC_dem + sC_rep);
-				} catch (err){
-					console.error("Error fetching state totals:", err);
-				}
-			}
-		}
-		fetchTotals();
-	}, [mode]);
+	// Data states for each state that can show up in comparison tables
+	// const [delawareData, setDelawareData] = useState(null);
+	// const [southCarolinaData, setSouthCarolinaData] = useState(null);
+	// const [coloradoData, setColoradoData] = useState(null);
 
 	switch (mode) {
 		// --- GUI-21 ---
@@ -58,25 +25,18 @@ export default function ComparisonTable({ mode }) {
 
 			rows = [
 				{
-					Metric: "South Carolina: Opt-In",
-					RegAbs: southCarolinaTotal ? southCarolinaTotal.toLocaleString() : "Data fetching...",
-					RegPct: "72%",
-					TurnAbs: "2,150,000",
-					TurnPct: "61%",
+					Metric: "Opt-In State",
+					RegAbs: "—",
+					RegPct: "—",
+					TurnAbs: "—",
+					TurnPct: "—",
 				},
 				{
-					Metric: "Colorado: Opt-Out (Same-Day Registration)",
-					RegAbs: "3,870,000",
-					RegPct: "86%",
-					TurnAbs: "3,050,000",
-					TurnPct: "68%",
-				},
-				{
-					Metric: "Delaware: Opt-Out (No Same-Day Registration)",
-					RegAbs: "3,240,000",
-					RegPct: "80%",
-					TurnAbs: "2,580,000",
-					TurnPct: "64%",
+					Metric: "Opt-Out State",
+					RegAbs: "—",
+					RegPct: "—",
+					TurnAbs: "—",
+					TurnPct: "—",
 				},
 			];
 			break;
@@ -93,20 +53,18 @@ export default function ComparisonTable({ mode }) {
 
 			rows = [
 				{
-					Metric: "South Carolina (Rep)",
-					RegAbs: southCarolinaTotal ? southCarolinaTotal.toLocaleString() : "Data fetching...",
-					//RegPct: "51%",
-					RegPct: southCarolinaTotal ? ((southCarolinaTotal * 100)/5479000.0).toFixed(1) + "%": "Data Fetching...",
-					TurnAbs: "2,540,000",
-					TurnPct: "66%",
+					Metric: "Opt-In State",
+					RegAbs: "—",
+					RegPct: "—",
+					TurnAbs: "—",
+					TurnPct: "—",
 				},
 				{
-					Metric: "Delaware (Dem)",
-					RegAbs: delawareTotal ? delawareTotal.toLocaleString() : "Data fetching...",
-					//RegPct: "52%",
-					RegPct: delawareTotal ? ((delawareTotal * 100)/1052000.0).toFixed(1) + "%": "Data Fetching...",
-					TurnAbs: "570,000",
-					TurnPct: "72%",
+					Metric: "Opt-Out State",
+					RegAbs: "—",
+					RegPct: "—",
+					TurnAbs: "—",
+					TurnPct: "—",
 				},
 			];
 			break;
@@ -125,22 +83,22 @@ export default function ComparisonTable({ mode }) {
 
 			rows = [
 				{
-					Metric: "Republican",
-					TotAbs: "1,820,000",
-					TotPct: "47%",
-					InAbs: "1,100,000",
-					InPct: "28%",
-					MailAbs: "720,000",
-					MailPct: "19%",
+					Metric: "Republican State",
+					TotAbs: "—",
+					TotPct: "—",
+					InAbs: "—",
+					InPct: "—",
+					MailAbs: "—",
+					MailPct: "—",
 				},
 				{
-					Metric: "Democratic",
-					TotAbs: "370,000",
-					TotPct: "63%",
-					InAbs: "220,000",
-					InPct: "38%",
-					MailAbs: "150,000",
-					MailPct: "25%",
+					Metric: "Democratic State",
+					TotAbs: "—",
+					TotPct: "—",
+					InAbs: "—",
+					InPct: "—",
+					MailAbs: "—",
+					MailPct: "—",
 				},
 			];
 			break;
@@ -148,31 +106,35 @@ export default function ComparisonTable({ mode }) {
 		// --- Default fallback (GUI-15 etc.) ---
 		default:
 			headers = ["Metric", "Republican State", "Democratic State"];
+			if (!data) {
+				rows = [];
+				break;
+			}
+
 			rows = [
 				{
 					Metric: "Felony Voting Rights",
-					Republican: "Restricted",
-					Democratic: "Restored After Parole",
+					Republican: data.republican.felonyRights,
+					Democratic: data.democratic.felonyRights,
 				},
 				{
 					Metric: "% Mail Ballots",
-					Republican: "12%",
-					Democratic: "34%",
+					Republican: `${data.republican.percentMail.toFixed(1)}%`,
+					Democratic: `${data.democratic.percentMail.toFixed(1)}%`,
 				},
 				{
 					Metric: "% Drop Box Ballots",
-					Republican: "5%",
-					Democratic: "21%",
+					Republican: `${data.republican.percentDropbox.toFixed(1)}%`,
+					Democratic: `${data.democratic.percentDropbox.toFixed(1)}%`,
 				},
 				{
 					Metric: "Voter Turnout",
-					Republican: "64%",
-					Democratic: "72%",
+					Republican: `${data.republican.percentTurnout.toFixed(1)}%`,
+					Democratic: `${data.democratic.percentTurnout.toFixed(1)}%`,
 				},
 			];
 			break;
 	}
-
 
 	return (
 		<Paper sx={{ p: 2, overflowX: "auto" }}>

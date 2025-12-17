@@ -2,14 +2,14 @@ import { Modal, Box, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ComparisonTable from "./ComparisonTable";
 
-export default function CompareModal({ open, onClose, mode }) {
+export default function CompareModal({ open, onClose, mode, compareData }) {
 	if (!open) return null;
 
 	const titles = {
-		"felony-rights": "Republican vs Democratic States - South Carolina & Delaware",
-		"opt-in-out": "Opt-In vs Opt-Out Voter Registration - South Carolina, Colorado, & Delaware",
-		"reg-comp": "Republican vs Democratic Voter Registration - South Carolina & Delaware",
-		"early-voting": "Republican vs Democratic Early Voting - South Carolina & Delaware",
+		"felony-rights": "Republican vs Democratic States - South Carolina vs Delaware",
+		"opt-in-out": "Opt-In vs Opt-Out Voter Registration - South Carolina vs Colorado vs Delaware",
+		"reg-comp": "Republican vs Democratic Voter Registration - South Carolina vs Delaware",
+		"early-voting": "Republican vs Democratic Early Voting - South Carolina vs Delaware",
 	};
 
 	return (
@@ -33,7 +33,7 @@ export default function CompareModal({ open, onClose, mode }) {
 						<CloseIcon />
 					</IconButton>
 				</Box>
-				<ComparisonTable mode={mode} />
+				<ComparisonTable mode={mode} data={compareData} />
 			</Box>
 		</Modal>
 	);

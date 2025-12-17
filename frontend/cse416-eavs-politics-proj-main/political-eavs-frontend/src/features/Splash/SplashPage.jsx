@@ -24,6 +24,7 @@ import EquipmentSummaryTable from "./EquipmentSummaryTable";
 import EquipmentByStateModal from "./EquipmentByStateModal";
 import CompareModal from "./CompareModal";
 import { getVotingEquipmentByState } from "../../api/equipment";
+import { getCumulativeCompareStateData } from "../../api/eavsCategories";
 
 // styled red reset button
 const ResetButton = styled(Button)(({ theme }) => ({
@@ -45,6 +46,9 @@ export default function SplashPage() {
 	// Data state for equipment by state table (GUI-12)
 	const [equipmentByStateRows, setEquipmentByStateRows] = useState([]);
 
+	// Data state for compare table (GUI-15/21/22/23)
+	const [compareData, setCompareData] = useState(null);
+
 	// fetch equipment by state data (GUI-12) on mount
 	useEffect(() => {
 		const fetchEquipment = async () => {
@@ -59,6 +63,22 @@ export default function SplashPage() {
 
 		fetchEquipment();
 	}, []);
+
+	// fetch GUI-15 data when compare mode drop-down is selected
+	useEffect(() => {
+		if (compareMode === "felony-rights") {
+			const fetchGui15 = async () => {
+				try {
+					const data = await getCumulativeCompareStateData();
+					setCompareData(data);
+				} catch (err) {
+					console.error("Failed to load GUI-15 data", err);
+				}
+			};
+
+			fetchGui15();
+		}
+	}, [compareMode]);
 
 	// record stacking order (so the most recent toggle appears on top)
 	const [stackOrder, setStackOrder] = useState([]);
@@ -265,7 +285,12 @@ export default function SplashPage() {
 					onClose={() => setSelectedEquipTableState(null)}
 				/>
 
-				<CompareModal open={!!compareMode} mode={compareMode} onClose={() => setCompareMode(null)} />
+				<CompareModal
+					open={!!compareMode}
+					mode={compareMode}
+					compareData={compareData}
+					onClose={() => setCompareMode(null)}
+				/>
 			</Box>
 		</Box>
 	);
