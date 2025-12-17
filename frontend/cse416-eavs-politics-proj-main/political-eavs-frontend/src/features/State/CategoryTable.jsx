@@ -85,6 +85,49 @@ export default function CategoryTable({ category = "provisional", rowsData }) {
 					return row;
 			  })
 			: [];
+	} else if (category === "mail_rejects") {
+		rows = Array.isArray(rowsData)
+			? rowsData.map((r) => {
+					const row = {
+						region: r.juris_name,
+						C9b: Number(r.C9b),
+						C9c: Number(r.C9c),
+						C9d: Number(r.C9d),
+						C9e: Number(r.C9e),
+						C9f: Number(r.C9f),
+						C9g: Number(r.C9g),
+						C9h: Number(r.C9h),
+						C9i: Number(r.C9i),
+						C9j: Number(r.C9j),
+						C9k: Number(r.C9k),
+						C9l: Number(r.C9l),
+						C9m: Number(r.C9m),
+						C9n: Number(r.C9n),
+						C9o: Number(r.C9o),
+						C9p: Number(r.C9p),
+						C9q: Number(r.C9q),
+					};
+					// total (sum of C9 columns)
+					row.total =
+						row.C9b +
+						row.C9c +
+						row.C9d +
+						row.C9e +
+						row.C9f +
+						row.C9g +
+						row.C9h +
+						row.C9i +
+						row.C9j +
+						row.C9k +
+						row.C9l +
+						row.C9m +
+						row.C9n +
+						row.C9o +
+						row.C9p +
+						row.C9q;
+					return row;
+			  })
+			: [];
 	}
 
 	const [page, setPage] = useState(0);
@@ -98,7 +141,7 @@ export default function CategoryTable({ category = "provisional", rowsData }) {
 
 	return (
 		<>
-			<TableContainer component={Paper} sx={{ overflowX: "auto", overflowY: "hidden" }}>
+			<TableContainer component={Paper} sx={{ overflowX: "auto", overflowY: "hidden", pb: 6 }}>
 				<Table size="small" stickyHeader>
 					<TableHead>
 						<TableRow>
@@ -114,7 +157,8 @@ export default function CategoryTable({ category = "provisional", rowsData }) {
 					<TableBody>
 						{rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, idx) => (
 							<TableRow key={idx}>
-								<TableCell>{row.region}</TableCell>
+								<TableCell sx={{ whiteSpace: "nowrap" }}>{row.region}</TableCell>
+
 								{codes.map((code) => (
 									<TableCell key={code} align="right">
 										{row[code]}
@@ -134,7 +178,7 @@ export default function CategoryTable({ category = "provisional", rowsData }) {
 				onPageChange={handleChangePage}
 				rowsPerPage={rowsPerPage}
 				onRowsPerPageChange={handleChangeRowsPerPage}
-				rowsPerPageOptions={[3, 5]}
+				rowsPerPageOptions={[3]}
 				sx={{ overflow: "hidden" }}
 			/>
 		</>

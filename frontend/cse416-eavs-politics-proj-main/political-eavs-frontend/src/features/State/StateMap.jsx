@@ -123,6 +123,27 @@ export default function StateMap({
 		return map;
 	}, [choroplethTotal]);
 
+	// build county GEOID -> mail rejects percentage lookup (GUI-8)
+	const mailRejectsPctByCounty = useMemo(() => {
+		const map = new Map();
+
+		if (!Array.isArray(choroplethTotal)) return map;
+
+		choroplethTotal.forEach((row) => {
+			if (!row.county_fips) return;
+
+			const mailRejected = Number(row.rejection_pct_of_state);
+
+			if (!Number.isFinite(mailRejected) || mailRejected <= 0) {
+				map.set(row.county_fips, 0); // lowest bin if missing/bad county
+			} else {
+				map.set(row.county_fips, mailRejected);
+			}
+		});
+
+		return map;
+	}, [choroplethTotal]);
+
 	// style for base state outline
 	const baseStyle = useMemo(
 		() => ({
@@ -164,6 +185,9 @@ export default function StateMap({
 			if (value == null) value = 0; // lowest bin if missing/bad county
 		} else if (dataCategory === "active") {
 			value = activePctByCounty.get(geoid);
+			if (value == null) value = 0;
+		} else if (dataCategory === "mail_rejects") {
+			value = mailRejectsPctByCounty.get(geoid);
 			if (value == null) value = 0;
 		}
 
