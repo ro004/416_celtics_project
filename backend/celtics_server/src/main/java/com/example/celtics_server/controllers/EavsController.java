@@ -1,11 +1,10 @@
 package com.example.celtics_server.controllers;
 
-import com.example.celtics_server.dtos.EAVSPoliticalComparisonDTO;
-import com.example.celtics_server.dtos.ProvisionalViewDTO;
-import com.example.celtics_server.dtos.ActiveVotersViewDTO;
-import com.example.celtics_server.dtos.USEquipmentViewDTO;
+import com.example.celtics_server.dtos.*;
 import com.example.celtics_server.services.EavsService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/eavs")
@@ -46,5 +45,13 @@ public class EavsController {
             @PathVariable Integer year
     ){
         return eavsService.getPoliticalStateComparisonView(stateFips, year);
+    }
+
+    //GUI 21
+    @GetMapping("/political-states-comparison/{year}")
+    public List<PoliticalStateComparisonDTO> getPoliticalStateTableComparison(
+            @PathVariable Integer year
+    ){
+        return eavsService.getPoliticalStateComparisons(year);
     }
 }

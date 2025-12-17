@@ -11,9 +11,10 @@ import java.util.*;
 public class EavsService {
 
     private final EavsRepository eavsRepository;
-
-    public EavsService(EavsRepository eavsRepository) {
+    private final CDcvapService cdcvapService;
+    public EavsService(EavsRepository eavsRepository, CDcvapService cdcvapService) {
         this.eavsRepository = eavsRepository;
+        this.cdcvapService = cdcvapService;
     }
     //GUI Use Cases 3,4,5
     public ProvisionalViewDTO getProvisionalViewForState(String stateFips, Integer year) {
@@ -231,6 +232,51 @@ public class EavsService {
                 percentTurnout
         );
     }
+
+    public List<PoliticalStateComparisonDTO> getPoliticalStateComparisons(int year) {
+        PoliticalStateComparisonDTO sc = polStateHelper("45", "South Carolina", "Republican", year);
+        PoliticalStateComparisonDTO de = polStateHelper("10", "Delaware", "Democratic", year);
+        return List.of(sc, de);
+    }
+
+    private PoliticalStateComparisonDTO polStateHelper(
+            String stateFips,
+            String stateName,
+            String party,
+            int year
+    ) {
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+
+        long registeredTotal = 0L;
+        double ballotsCast = 0.0;
+
+        for (Eavs row : rows) {
+            // registeredTotal (EAVS other.a12_total)
+            if (row.getOther() != null && row.getOther().a12_total != null) {
+                registeredTotal += row.getOther().a12_total.longValue();
+            }
+
+            // ballotsCast (EAVS early.total_voters_all_methods)
+            if (row.getEarly() != null && row.getEarly().total_voters_all_methods != null) {
+                ballotsCast += row.getEarly().total_voters_all_methods;
+            }
+        }
+
+        long cvapTotal = cdcvapService.getStateCvapTotal(stateName);
+
+        Double registrationRate = (cvapTotal == 0) ? null : (registeredTotal * 100.0) / cvapTotal;
+        Double turnoutRate = (registeredTotal == 0) ? null : (ballotsCast * 100.0) / registeredTotal;
+
+        return new PoliticalStateComparisonDTO(
+                stateName,
+                party,
+                registeredTotal,
+                registrationRate,
+                ballotsCast,
+                turnoutRate
+        );
+    }
+
 
     private double formatNull(Double value) {
         if (value == null) return 0.0;
