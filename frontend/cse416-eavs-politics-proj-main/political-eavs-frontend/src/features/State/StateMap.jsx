@@ -164,7 +164,7 @@ export default function StateMap({
 			if (value == null) value = 0; // lowest bin if missing/bad county
 		} else if (dataCategory === "active") {
 			value = activePctByCounty.get(geoid);
-			if (value == null) value = 0; // lowest bin if missing/bad county
+			if (value == null) value = 0;
 		}
 
 		// Binning
