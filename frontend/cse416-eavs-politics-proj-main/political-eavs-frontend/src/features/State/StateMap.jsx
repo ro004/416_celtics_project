@@ -66,11 +66,11 @@ export default function StateMap({
 	stateFeature, // GeoJSON feature for the selected state
 	stateFips, // e.g. "08"
 	isDetailed, // boolean
-	dataCategory, // "provisional" | "active" | "deletions" | "mail_rejects"
+	dataCategory, // "provisional" | "active" | "deletions" | "mail_rejects" | "voter_reg"
 	equipmentMode, // "none" | "type"
 	countyFeatures, // full county geojson Feature[] (all 4 detailed states)
 	showBubbles, // boolean, whether to show voter bubbles (OK only for now)
-	choroplethTotal, // same as GUI-4 data.counties (array of county objects)
+	choroplethTotal, // same as GUI-4 data.counties (array of county objects) | voter reg
 }) {
 	// filter counties for this state only once
 	const counties = useMemo(() => {
@@ -144,6 +144,19 @@ export default function StateMap({
 		return map;
 	}, [choroplethTotal]);
 
+	// build county name -> voter registration percentage lookup (GUI-10)
+	const voterRegPctByCounty = useMemo(() => {
+		const map = new Map();
+		if (!Array.isArray(choroplethTotal)) return map;
+
+		choroplethTotal.forEach((r) => {
+			if (!r.county) return;
+			map.set(r.county.toUpperCase(), Number(r.percent_registered));
+		});
+
+		return map;
+	}, [choroplethTotal]);
+
 	// style for base state outline
 	const baseStyle = useMemo(
 		() => ({
@@ -178,6 +191,7 @@ export default function StateMap({
 		if (!isDetailed) {
 			return { fillOpacity: 0 };
 		}
+
 		const geoid = feature.properties.GEOID;
 		let value = 0;
 		if (dataCategory === "provisional") {
@@ -189,6 +203,24 @@ export default function StateMap({
 		} else if (dataCategory === "mail_rejects") {
 			value = mailRejectsPctByCounty.get(geoid);
 			if (value == null) value = 0;
+		} else if (dataCategory === "voter_reg") {
+			const countyName = feature.properties.NAME || feature.properties.NAMELSAD;
+
+			value = voterRegPctByCounty.get(countyName?.toUpperCase());
+			if (value == null) value = 0;
+
+			const bins = [1, 2, 3, 4, 5, 100];
+			const colors = ["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#cc7a00", "#994d00"];
+
+			let idx = bins.findIndex((b) => value <= b);
+			if (idx === -1) idx = bins.length - 1;
+
+			return {
+				fillColor: colors[idx],
+				color: "#111",
+				weight: 0.6,
+				fillOpacity: 0.85,
+			};
 		}
 
 		// Binning
@@ -278,6 +310,17 @@ export default function StateMap({
 									/>
 								</>
 							)}
+							{dataCategory === "voter_reg" && (
+								<>
+									<GeoJSON data={asFeatureCollection} style={choroplethStyle} />
+									<ChoroplethLegend
+										title="Voter Registration (%)"
+										bins={[1, 2, 3, 4, 5, 100]}
+										colors={["#fff5e6", "#ffd9b3", "#ffbf80", "#ff9933", "#cc7a00", "#994d00"]}
+										isPercent={true}
+									/>
+								</>
+							)}
 						</>
 					)}
 
@@ -305,7 +348,8 @@ function ChoroplethLegend({ title, bins, colors, isPercent }) {
 			div.style.font = "12px sans-serif";
 			div.innerHTML = `<strong>${title}</strong><br>`;
 			for (let i = 0; i < colors.length; i++) {
-				const from = i === 0 ? 0 : bins[i - 1] + 1;
+				const from = i === 0 ? 0 : bins[i - 1];
+
 				const to = bins[i] || (isPercent ? "100%" : `${bins[bins.length - 1]}+`);
 				div.innerHTML += `<div><span style="display:inline-block;width:14px;height:14px;background:${
 					colors[i]

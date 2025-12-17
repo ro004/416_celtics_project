@@ -33,6 +33,8 @@ import {
 	getPollbookDeletionSummaryandRegionsList,
 	getProvBallotSummaryandRegionsList,
 } from "../../api/eavsCategories";
+import { getOklahomaVoterRegByCounty } from "../../api/voters";
+import VoterRegistrationTable from "./VoterRegistrationTable";
 //import { getStateVotingEquipTable } from "../../api/equipment";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
@@ -87,6 +89,9 @@ export default function StatePage() {
 
 	// Data states for state voting equipment table
 	// const [equipTableData, setEquipTableData] = useState([]); // GUI-6 data for equipment table
+
+	// GUI-17 voter registration (OK only)
+	const [voterRegData, setVoterRegData] = useState([]);
 
 	// mock CVAP values for now
 	const registeredVoters = 1000000;
@@ -149,6 +154,28 @@ export default function StatePage() {
 
 		fetchCategoryData();
 	}, [id, category]);
+
+	// fetch voter registration data for OK only (GUI-17)
+	useEffect(() => {
+		if (id !== "40") return; // OK only
+
+		const fetchVoterRegData = async () => {
+			try {
+				const data = await getOklahomaVoterRegByCounty();
+				setVoterRegData(data || []);
+			} catch (err) {
+				console.error("Failed to load voter registration data:", err);
+				setVoterRegData([]);
+			}
+		};
+
+		fetchVoterRegData();
+	}, [id]);
+
+	// ---- Map mode resolution (EAVS vs Voter Registration) ----
+	const mapDataCategory = id === "40" && tab === "voter_reg" ? "voter_reg" : category;
+
+	const mapChoroplethData = id === "40" && tab === "voter_reg" ? voterRegData : categoryTotal;
 
 	return (
 		<Box sx={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "column" }}>
@@ -221,9 +248,9 @@ export default function StatePage() {
 								stateFeature={stateFeature}
 								stateFips={id}
 								isDetailed={isDetailed}
-								dataCategory={category}
+								dataCategory={mapDataCategory}
 								equipmentMode={equipOverlay}
-								choroplethTotal={categoryTotal}
+								choroplethTotal={mapChoroplethData}
 								countyFeatures={countyBoundaries.features}
 								showBubbles={showBubbles}
 							/>
@@ -254,6 +281,7 @@ export default function StatePage() {
 								scrollButtons="auto">
 								<Tab value="provisional" label={TAB_LABELS[category] || "Provisional Data"} />
 								<Tab value="equipment" label="Equipment Summary" />
+								{id === "40" && <Tab value="voter_reg" label="Voter Registration" />}
 							</Tabs>
 						</Box>
 
@@ -305,6 +333,7 @@ export default function StatePage() {
 							</Paper>
 						</Box>
 
+						{/* GUI-6 Voting Equipment Table Tab */}
 						<Box
 							sx={{
 								flex: 1,
@@ -314,6 +343,18 @@ export default function StatePage() {
 								p: 1,
 							}}>
 							<EquipmentTable /** rowsData={equipTableData} **/ />
+						</Box>
+
+						{/* GUI-17 Voter Registration Table Tab */}
+						<Box
+							sx={{
+								flex: 1,
+								display: tab === "voter_reg" ? "flex" : "none",
+								flexDirection: "column",
+								overflow: "hidden",
+								p: 1,
+							}}>
+							<VoterRegistrationTable rowsData={voterRegData} />
 						</Box>
 					</Paper>
 				</Box>
