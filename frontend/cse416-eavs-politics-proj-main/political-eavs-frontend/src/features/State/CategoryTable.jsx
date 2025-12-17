@@ -73,6 +73,18 @@ export default function CategoryTable({ category = "provisional", rowsData }) {
 					return row;
 			  })
 			: [];
+	} else if (category === "active") {
+		rows = Array.isArray(rowsData)
+			? rowsData.map((r) => {
+					const row = {
+						region: r.juris_name,
+						Active: Number(r.a12_active),
+						Inactive: Number(r.a12_inactive),
+					};
+					row.total = row.Active + row.Inactive;
+					return row;
+			  })
+			: [];
 	}
 
 	const [page, setPage] = useState(0);
@@ -86,7 +98,7 @@ export default function CategoryTable({ category = "provisional", rowsData }) {
 
 	return (
 		<>
-			<TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+			<TableContainer component={Paper} sx={{ overflowX: "auto", overflowY: "hidden" }}>
 				<Table size="small" stickyHeader>
 					<TableHead>
 						<TableRow>

@@ -66,7 +66,7 @@ export default function StateMap({
 	stateFeature, // GeoJSON feature for the selected state
 	stateFips, // e.g. "08"
 	isDetailed, // boolean
-	dataCategory, // "provisional" | future: "active" | "deletions" | ...
+	dataCategory, // "provisional" | "active" | "deletions" | "mail_rejects"
 	equipmentMode, // "none" | "type"
 	countyFeatures, // full county geojson Feature[] (all 4 detailed states)
 	showBubbles, // boolean, whether to show voter bubbles (OK only for now)
@@ -96,6 +96,28 @@ export default function StateMap({
 			// county_fips is already a full GEOID (e.g. "35001")
 			if (!row.county_fips) return;
 			map.set(row.county_fips, Number(row.prov_total_cast));
+		});
+
+		return map;
+	}, [choroplethTotal]);
+
+	// Build county GEOID -> active voter percentage lookup (GUI-7)
+	const activePctByCounty = useMemo(() => {
+		const map = new Map();
+
+		if (!Array.isArray(choroplethTotal)) return map;
+
+		choroplethTotal.forEach((row) => {
+			if (!row.county_fips) return;
+
+			const active = Number(row.a12_active);
+			const total = Number(row.a12_total);
+
+			if (!Number.isFinite(active) || !Number.isFinite(total) || total <= 0) {
+				map.set(row.county_fips, 0); // lowest bin if missing/bad county
+			} else {
+				map.set(row.county_fips, (active / total) * 100);
+			}
 		});
 
 		return map;
@@ -136,8 +158,14 @@ export default function StateMap({
 			return { fillOpacity: 0 };
 		}
 		const geoid = feature.properties.GEOID;
-		let value = provTotalByCounty.get(geoid);
-		if (value == null) value = 0;
+		let value = 0;
+		if (dataCategory === "provisional") {
+			value = provTotalByCounty.get(geoid);
+			if (value == null) value = 0; // lowest bin if missing/bad county
+		} else if (dataCategory === "active") {
+			value = activePctByCounty.get(geoid);
+			if (value == null) value = 0; // lowest bin if missing/bad county
+		}
 
 		// Binning
 		const bins = dataCategory === "provisional" ? [100, 250, 400, 600, 800, 1000] : [20, 40, 60, 80, 100];

@@ -24,7 +24,7 @@ const CATEGORY_DEFS = {
 	active: {
 		axisX: "Active Voter Categories",
 		axisY: "Voters",
-		labels: { Act: "Active Voters", Inact: "Inactive Voters", Tot: "Total Registered" },
+		labels: { Tot: "Total Registered", Act: "Active Voters", Inact: "Inactive Voters" },
 	},
 	deletions: {
 		axisX: "Pollbook Deletion Categories",
@@ -93,7 +93,7 @@ export default function CategoryBarChart({ category = "provisional", data: exter
 
 		const { width, height } = wrapperRef.current.getBoundingClientRect();
 
-		const margin = { top: 40, right: 20, bottom: 80, left: 70 };
+		const margin = { top: 40, right: 20, bottom: 80, left: 95 };
 		const innerWidth = width - margin.left - margin.right;
 		const innerHeight = height - margin.top - margin.bottom;
 
@@ -132,7 +132,7 @@ export default function CategoryBarChart({ category = "provisional", data: exter
 			.attr("y", (d) => y(d.value))
 			.attr("height", (d) => innerHeight - y(d.value))
 			.attr("width", x.bandwidth())
-			.attr("fill", "#2196f3");
+			.attr("fill", "#169618ff");
 
 		// Axis labels
 		svg.append("text")
@@ -145,7 +145,7 @@ export default function CategoryBarChart({ category = "provisional", data: exter
 
 		svg.append("text")
 			.attr("transform", "rotate(-90)")
-			.attr("y", 15)
+			.attr("y", 10)
 			.attr("x", -(height / 2))
 			.attr("text-anchor", "middle")
 			.style("fill", "#eee")
@@ -173,7 +173,7 @@ export default function CategoryBarChart({ category = "provisional", data: exter
 				}}>
 				{Object.entries(categoryLabels).map(([code, name]) => (
 					<Box key={code} sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-						<Box sx={{ width: 14, height: 14, bgcolor: "#2196f3", mr: 1 }} />
+						<Box sx={{ width: 14, height: 14, bgcolor: "#169618ff", mr: 1 }} />
 						<Typography variant="caption" sx={{ color: "#ddd" }}>
 							{code}: {name}
 						</Typography>
