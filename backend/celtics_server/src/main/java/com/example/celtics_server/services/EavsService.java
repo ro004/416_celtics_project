@@ -171,6 +171,59 @@ public class EavsService {
         return new ActiveVotersViewDTO(summary, regions);
     }
 
+    //GUI Use Case 8
+    public PollbookViewDTO getPollbookDeletionViewForState(String stateFips, Integer year) {
+
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+
+        double A12b = 0, A12c = 0, A12d = 0, A12e = 0, A12f = 0, A12g = 0, A12h = 0;
+
+        List<CountyPollbookDeletionDTO> counties = new ArrayList<>();
+
+        for (Eavs r : rows) {
+            Eavs.PollbookDeletions pd = r.getPollbook_Deletions();
+            if (pd == null) continue;
+
+            double cA12b = formatNull(pd.A12b);
+            double cA12c = formatNull(pd.A12c);
+            double cA12d = formatNull(pd.A12d);
+            double cA12e = formatNull(pd.A12e);
+            double cA12f = formatNull(pd.A12f);
+            double cA12g = formatNull(pd.A12g);
+            double cA12h = formatNull(pd.A12h);
+
+            // add to statewide totals for bar chart
+            A12b += cA12b;
+            A12c += cA12c;
+            A12d += cA12d;
+            A12e += cA12e;
+            A12f += cA12f;
+            A12g += cA12g;
+            A12h += cA12h;
+
+            double deletionsTotal = cA12b + cA12c + cA12d + cA12e + cA12f + cA12g + cA12h;
+
+            // Denominator per spec = A1a (Total Registered)
+            // If you don’t have A1a, you’re currently using a12_total as proxy.
+            double denomRegistered = formatNull(r.getOther() == null ? null : r.getOther().a12_total);
+
+            Double pct = (denomRegistered == 0.0) ? null : (deletionsTotal * 100.0) / denomRegistered;
+
+            counties.add(new CountyPollbookDeletionDTO(
+                    r.getCounty_fips(),
+                    r.getJuris_name(),
+                    pct,
+                    cA12b, cA12c, cA12d, cA12e, cA12f, cA12g, cA12h
+            ));
+        }
+
+        PollbookDeletionDTO summary = new PollbookDeletionDTO(
+                stateFips, year, A12b, A12c, A12d, A12e, A12f, A12g, A12h
+        );
+
+        return new PollbookViewDTO(summary, counties);
+    }
+
     public MailRejectionViewDTO getMailRejectionViewForState(String stateFips, Integer year) {
 
         List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
@@ -551,6 +604,75 @@ public class EavsService {
         );
     }
 
+    public List<EquipmentQualityRejectedBallotsDTO> getEquipmentQualityVsRejectedBallots(
+            String stateFips,
+            Integer year
+    ) {
+        List<Eavs> rows = eavsRepository.findByStateFipsAndYear(stateFips, year);
+        List<EquipmentQualityRejectedBallotsDTO> out = new ArrayList<>();
+
+        for (Eavs r : rows) {
+
+            // -------------------------
+            // X-axis: Equipment Quality
+            // -------------------------
+            double quality = computeEquipmentQuality(r.getOther());
+
+            // -------------------------
+            // Y-axis: Rejected Ballots %
+            // -------------------------
+            Eavs.Mail m = r.getMail();
+            Eavs.Provisional p = r.getProvisional();
+            Eavs.Early e = r.getEarly();
+
+            // Numerator: rejected ballots (C9a + E1d)
+            double rejected =
+                    formatNull(m == null ? null : m.mail_rejected_total)
+                            + formatNull(p == null ? null : p.prov_rejected);
+            // NOTE: UOCAVA rejected (B24a) not present → treated as 0
+
+            // Denominator: total ballots
+            double totalBallots =
+                    formatNull(m == null ? null : m.mail_counted_total)
+                            + formatNull(e == null ? null : e.early_in_person_votes)
+                            + formatNull(e == null ? null : e.in_person_election_day)
+                            + formatNull(p == null ? null : p.prov_full_counted)
+                            + formatNull(p == null ? null : p.prov_partial_counted);
+
+            Double rejectedPct =
+                    (totalBallots == 0.0) ? null : (rejected * 100.0) / totalBallots;
+
+            out.add(new EquipmentQualityRejectedBallotsDTO(
+                    r.getState_fips(),
+                    r.getCounty_fips(),
+                    r.getJuris_name(),
+                    quality,
+                    rejectedPct
+                    //rejected,
+                    //totalBallots
+            ));
+        }
+
+        return out;
+    }
+    private double computeEquipmentQuality(Eavs.Other o) {
+        if (o == null) return 0.0;
+
+        double scanner = formatNull(o.scanner_total);
+        double bmd = formatNull(o.bmd_total);
+        double dreVV = formatNull(o.dre_with_vvpat_total);
+        double dreNo = formatNull(o.dre_no_vvpat_total);
+
+        double total = scanner + bmd + dreVV + dreNo;
+        if (total == 0) return 0.0;
+
+        return (
+                4 * scanner +
+                        3 * bmd +
+                        2 * dreVV +
+                        1 * dreNo
+        ) / total;
+    }
     private double formatNull(Double value) {
         if (value == null) return 0.0;
         else if (value < 0) return 0.0;

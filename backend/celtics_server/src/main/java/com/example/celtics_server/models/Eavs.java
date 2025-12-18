@@ -39,6 +39,7 @@ public class Eavs {
     private Qa qa;
     private Meta meta;
     private Other other;
+    private PollbookDeletions pollbook_deletions;
 
     // getters
     public String getState_fips(){
@@ -53,6 +54,9 @@ public class Eavs {
         return juris_name;
     }
 
+    public PollbookDeletions getPollbook_Deletions() {
+        return pollbook_deletions;
+    }
     public Provisional getProvisional(){
         return provisional;
     }
@@ -114,6 +118,16 @@ public class Eavs {
 
         public Double mail_reject_share;
         public Double mail_rejected_reasons_sum;
+    }
+
+    public static class PollbookDeletions {
+        public Double A12b;
+        public Double A12c;
+        public Double A12d;
+        public Double A12e;
+        public Double A12f;
+        public Double A12g;
+        public Double A12h;
     }
 
     // PROVISIONAL: totals + E2 reasons – GUI-3, 4, 5, 25

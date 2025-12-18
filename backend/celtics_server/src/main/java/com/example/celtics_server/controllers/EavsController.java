@@ -32,6 +32,14 @@ public class EavsController {
     ) {
         return eavsService.getProvisionalViewForState(stateFips, year);
     }
+    // GUI-8: Pollbook deletions
+    @GetMapping("/pollbook-deletions/{stateFips}/{year}")
+    public PollbookViewDTO getPollbookDeletions(
+            @PathVariable String stateFips,
+            @PathVariable Integer year
+    ) {
+        return eavsService.getPollbookDeletionViewForState(stateFips, year);
+    }
     @GetMapping("/mailrejections/{stateFips}/{year}")
     public MailRejectionViewDTO getMailRejectionForState(
             @PathVariable String stateFips,
@@ -90,6 +98,14 @@ public class EavsController {
             @PathVariable int year
     ) {
         return eavsService.getPoliticalEarlyVotingComparisons(year);
+    }
+
+    @GetMapping("/equipment-quality-rejected/{stateFips}/{year}")
+    public List<EquipmentQualityRejectedBallotsDTO> getGui25EquipmentQualityRejected(
+            @PathVariable String stateFips,
+            @PathVariable Integer year
+    ) {
+        return eavsService.getEquipmentQualityVsRejectedBallots(stateFips, year);
     }
 
 }
