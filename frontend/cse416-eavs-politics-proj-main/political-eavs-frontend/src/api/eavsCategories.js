@@ -15,7 +15,7 @@ export async function getActiveVoterSummaryandRegionsList(stateFips, year) {
 
 // get pollbook deletion summary (GUI-9) alongside deletion counts by region (GUI-10)
 export async function getPollbookDeletionSummaryandRegionsList(stateFips, year) {
-	const { data } = await api.get(`/eavs/pollbookdeletions/${stateFips}/${year}`);
+	const { data } = await api.get(`/eavs/pollbook-deletions/${stateFips}/${year}`);
 	return data;
 }
 

@@ -128,6 +128,24 @@ export default function CategoryTable({ category = "provisional", rowsData }) {
 					return row;
 			  })
 			: [];
+	} else if (category === "deletions") {
+		rows = Array.isArray(rowsData)
+			? rowsData.map((r) => {
+					const row = {
+						region: r.juris_name,
+						A12b: Number(r.A12b),
+						A12c: Number(r.A12c),
+						A12d: Number(r.A12d),
+						A12e: Number(r.A12e),
+						A12f: Number(r.A12f),
+						A12g: Number(r.A12g),
+						A12h: Number(r.A12h),
+					};
+					// total (sum of A12 columns)
+					row.total = row.A12b + row.A12c + row.A12d + row.A12e + row.A12f + row.A12g + row.A12h;
+					return row;
+			  })
+			: [];
 	}
 
 	const [page, setPage] = useState(0);

@@ -166,7 +166,7 @@ export default function StateMap({
 		return map;
 	}, [choroplethTotal]);
 
-	// build county GEOID -> mail rejects percentage lookup (GUI-8)
+	// build county GEOID -> mail rejects percentage lookup (GUI-9)
 	const mailRejectsPctByCounty = useMemo(() => {
 		const map = new Map();
 
@@ -181,6 +181,25 @@ export default function StateMap({
 				map.set(row.county_fips, 0); // lowest bin if missing/bad county
 			} else {
 				map.set(row.county_fips, mailRejected);
+			}
+		});
+
+		return map;
+	}, [choroplethTotal]);
+
+	// build county GEOID -> pollbook deletions percentage lookup (GUI-8)
+	const pollbookDeletionsPctByCounty = useMemo(() => {
+		const map = new Map();
+		if (!Array.isArray(choroplethTotal)) return map;
+
+		choroplethTotal.forEach((row) => {
+			if (!row.county_fips) return;
+
+			const deletionsPct = Number(row.deletion_pct_of_registered);
+			if (!Number.isFinite(deletionsPct) || deletionsPct <= 0) {
+				map.set(row.county_fips, 0); // lowest bin if missing/bad county
+			} else {
+				map.set(row.county_fips, deletionsPct);
 			}
 		});
 
@@ -287,6 +306,9 @@ export default function StateMap({
 			if (value == null) value = 0;
 		} else if (dataCategory === "mail_rejects") {
 			value = mailRejectsPctByCounty.get(geoid);
+			if (value == null) value = 0;
+		} else if (dataCategory === "deletions") {
+			value = pollbookDeletionsPctByCounty.get(geoid);
 			if (value == null) value = 0;
 		} else if (dataCategory === "voter_reg") {
 			const countyName = feature.properties.NAME || feature.properties.NAMELSAD;
