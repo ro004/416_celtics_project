@@ -44,3 +44,9 @@ export async function getRegisteredVotersByCounty({ countyName, party, page, siz
 	if (!res.ok) throw new Error(`Failed to fetch voters: ${res.status}`);
 	return res.json();
 }
+
+// get GUI-18 voter registration bubbles for Oklahoma
+export async function getOklahomaVoterRegBubbles() {
+	const { data } = await api.get("/voters/bubbles/census-block");
+	return data;
+}

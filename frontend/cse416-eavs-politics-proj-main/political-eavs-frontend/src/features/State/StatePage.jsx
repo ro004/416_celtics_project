@@ -33,7 +33,7 @@ import {
 	getPollbookDeletionSummaryandRegionsList,
 	getProvBallotSummaryandRegionsList,
 } from "../../api/eavsCategories";
-import { getOklahomaVoterRegByCounty } from "../../api/voters";
+import { getOklahomaVoterRegBubbles, getOklahomaVoterRegByCounty } from "../../api/voters";
 import VoterRegistrationTable from "./VoterRegistrationTable";
 import { getCvapScoreForState } from "../../api/cvap";
 import { getEquipmentQualityVsRejects, getVotingEquipmentByCounty } from "../../api/equipment";
@@ -106,6 +106,9 @@ export default function StatePage() {
 	// GUI-25 equipment quality vs rejects bubble chart
 	const [showEquipBubble, setShowEquipBubble] = useState(false);
 	const [equipBubbleData, setEquipBubbleData] = useState([]);
+
+	// GUI-18 registered voters (OK only)
+	const [voterBubbleData, setVoterBubbleData] = useState([]);
 
 	// GUI-19 registered voters by county
 	const [selectedCounty, setSelectedCounty] = useState(null); // string | null
@@ -240,6 +243,25 @@ export default function StatePage() {
 		fetchVoterRegData();
 	}, [id]);
 
+	// fetch voter bubble data for OK only (GUI-18)
+	useEffect(() => {
+		if (id !== "40") return; // OK only
+
+		if (!showBubbles) return; // fetch only when needed
+
+		const fetchBubbleData = async () => {
+			try {
+				const data = await getOklahomaVoterRegBubbles();
+				setVoterBubbleData(Array.isArray(data) ? data : []);
+			} catch (err) {
+				console.error("Failed to load voter bubble data:", err);
+				setVoterBubbleData([]);
+			}
+		};
+
+		fetchBubbleData();
+	}, [id, showBubbles]);
+
 	// ---- Map mode resolution (EAVS vs Voter Registration) ----
 	const mapDataCategory = id === "40" && tab === "voter_reg" ? "voter_reg" : category;
 
@@ -329,6 +351,7 @@ export default function StatePage() {
 								choroplethTotal={mapChoroplethData}
 								countyFeatures={countyBoundaries.features}
 								showBubbles={showBubbles}
+								voterBubbleData={voterBubbleData}
 								onCountyClick={(countyName) => {
 									if (id !== "40") return; // OK only
 									setSelectedCounty(countyName);

@@ -115,6 +115,7 @@ export default function StateMap({
 	showBubbles, // boolean, whether to show voter bubbles (OK only for now)
 	choroplethTotal, // same as GUI-4 data.counties (array of county objects) | voter reg
 	onCountyClick, // (countyName: string) => void
+	voterBubbleData, // array of voter bubble objects for GUI-18 overlay
 }) {
 	// filter counties for this state only once
 	const counties = useMemo(() => {
@@ -470,7 +471,9 @@ export default function StateMap({
 					)}
 
 					{/* Voter Bubble Overlay (OK only for now) */}
-					{isDetailed && stateFips === "40" && showBubbles && <VoterBubbleOverlay />}
+					{isDetailed && stateFips === "40" && showBubbles && (
+						<VoterBubbleOverlay bubbles={voterBubbleData} />
+					)}
 
 					<FitBounds feature={stateFeature} />
 				</MapContainer>
