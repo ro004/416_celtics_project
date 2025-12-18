@@ -11,64 +11,23 @@ import {
 	Typography,
 } from "@mui/material";
 import { useState } from "react";
+import MOCK_EQUIPMENT_DATA from "./EquipmentSummaryData";
 
 // mock rows; later, load from backend
-// const ROWS = [
-// 	{
-// 		makeModel: "Acme ScanMaster 3000",
-// 		available: true,
-// 		quantity: 420,
-// 		type: "Scanner",
-// 		description: "Precinct-count optical scanner",
-// 		ageYears: 5,
-// 		os: "Embedded Linux",
-// 		certification: "VVSG 2.0 certified",
-// 		scanRate: "60%",
-// 		errorRate: "0.3%",
-// 		reliability: "82%",
-// 	},
-// 	{
-// 		makeModel: "Votex Touch-1",
-// 		available: false,
-// 		quantity: 180,
-// 		type: "DRE no VVPAT",
-// 		description: "Legacy touchscreen DRE",
-// 		ageYears: 12,
-// 		os: "Windows CE",
-// 		certification: "VVSG 1.0 certified",
-// 		scanRate: "70%",
-// 		errorRate: "0.8%",
-// 		reliability: "84%",
-// 	},
-// 	{
-// 		makeModel: "Electra Mark-B",
-// 		available: true,
-// 		quantity: 260,
-// 		type: "Ballot Marking Device",
-// 		description: "ADA-compliant BMD",
-// 		ageYears: 3,
-// 		os: "Android",
-// 		certification: "VVSG 2.0 applied",
-// 		scanRate: "75%",
-// 		errorRate: "0.2%",
-// 		reliability: "88%",
-// 	},
-// ];
-
+const ROWS = MOCK_EQUIPMENT_DATA;
 const COLS = [
-	{ key: "makeModel", label: "Make / Model" },
-	{ key: "quantity", label: "Qty", align: "right" },
-	{ key: "type", label: "Type" },
-	{ key: "description", label: "Description" },
-	{ key: "ageYears", label: "Age (yrs)", align: "right" },
-	{ key: "os", label: "OS" },
+	{ key: "makeModel", label: "Make & Model" },
+	{ key: "quantity", label: "Quantity", align: "right" },
+	{ key: "equipmentType", label: "Equipment Type" },
+	{ key: "age", label: "Age (Years)", align: "right" },
+	{ key: "os", label: "Operating System" },
 	{ key: "certification", label: "Certification" },
-	{ key: "scanRate", label: "Scan Rate" },
-	{ key: "errorRate", label: "Error Rate" },
-	{ key: "reliability", label: "Reliability" },
+	{ key: "scanRate", label: "Scan Rate", align: "right" },
+	{ key: "errorRate", label: "Error Rate", align: "right" },
+	{ key: "reliability", label: "Reliability", align: "right" },
 ];
 
-export default function EquipmentTable({ rows = [] }) {
+export default function EquipmentTable() {
 	const [page, setPage] = useState(0);
 	const [rpp, setRpp] = useState(5);
 
@@ -90,18 +49,23 @@ export default function EquipmentTable({ rows = [] }) {
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{rows.slice(page * rpp, page * rpp + rpp).map((row, i) => (
+						{ROWS.slice(page * rpp, page * rpp + rpp).map((row, i) => (
 							<TableRow key={i}>
-								<TableCell sx={{ color: row.available ? "inherit" : "error.main", fontWeight: 500 }}>
-									{row.makeModel}
+								{/* Make & Model (red if discontinued) */}
+								<TableCell
+									sx={{
+										color: row.discontinued ? "error.main" : "inherit",
+										fontWeight: 500,
+									}}>
+									{row.manufacturer} {row.model}
 								</TableCell>
+
 								<TableCell align="right">{row.quantity}</TableCell>
-								<TableCell>{row.type}</TableCell>
-								<TableCell>{row.description}</TableCell>
-								<TableCell align="right">{row.ageYears}</TableCell>
-								<TableCell>{row.os}</TableCell>
+								<TableCell>{row.equipmentType}</TableCell>
+								<TableCell align="right">{row.age}</TableCell>
+								<TableCell>{row.os || "—"}</TableCell>
 								<TableCell>{row.certification}</TableCell>
-								<TableCell align="right">{row.scanRate}</TableCell>
+								<TableCell align="right">{row.scanRate || "—"}</TableCell>
 								<TableCell align="right">{row.errorRate}</TableCell>
 								<TableCell align="right">{row.reliability}</TableCell>
 							</TableRow>
@@ -112,7 +76,7 @@ export default function EquipmentTable({ rows = [] }) {
 
 			<TablePagination
 				component="div"
-				count={rows.length}
+				count={ROWS.length}
 				page={page}
 				onPageChange={(_, p) => setPage(p)}
 				rowsPerPage={rpp}
