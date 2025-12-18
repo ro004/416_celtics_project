@@ -58,7 +58,7 @@ function BarChart({ title, data }) {
 			.attr("y", (d) => y(d.value))
 			.attr("height", (d) => innerHeight - y(d.value))
 			.attr("width", x.bandwidth())
-			.attr("fill", "#2196f3");
+			.attr("fill", "#169618ff");
 
 		// Chart title
 		svg.append("text")
