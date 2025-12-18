@@ -277,7 +277,7 @@ export default function StatePage() {
 					</Button>
 
 					<Typography variant="h6" sx={{ flexGrow: 1 }}>
-						{stateFeature ? stateFeature.properties.name : id} — Display State
+						Celtics - {stateFeature ? stateFeature.properties.name : id} — Display State
 					</Typography>
 
 					{/* Toggle button: switch GUI-25 bubble chart on/off */}
