@@ -4,6 +4,19 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 // import { getDelawareData, getSouthCarolinaData } from "../../api/stateVotes";
 
 export default function ComparisonTable({ mode, data }) {
+	// HARD GUARD: data shape must match mode
+	const expectsArray = mode === "opt-in-out" || mode === "reg-comp" || mode === "early-voting";
+
+	if ((expectsArray && !Array.isArray(data)) || (!expectsArray && Array.isArray(data))) {
+		return (
+			<Paper sx={{ p: 2 }}>
+				<Typography variant="body2" color="text.secondary">
+					Loading comparison data…
+				</Typography>
+			</Paper>
+		);
+	}
+
 	let headers = [];
 	let rows = [];
 
@@ -16,91 +29,68 @@ export default function ComparisonTable({ mode, data }) {
 		// --- GUI-21 ---
 		case "opt-in-out":
 			headers = [
-				"State Type",
+				"State / Policy",
 				"Registered Voters (Absolute)",
 				"Registration Rate (%)",
 				"Turnout (Absolute)",
 				"Turnout Rate (%)",
 			];
 
-			rows = [
-				{
-					Metric: "Opt-In State",
-					RegAbs: "—",
-					RegPct: "—",
-					TurnAbs: "—",
-					TurnPct: "—",
-				},
-				{
-					Metric: "Opt-Out State",
-					RegAbs: "—",
-					RegPct: "—",
-					TurnAbs: "—",
-					TurnPct: "—",
-				},
-			];
+			rows = Array.isArray(data)
+				? data.map((r) => ({
+						Metric: r.registrationPolicy,
+						RegAbs: typeof r.registeredTotal === "number" ? r.registeredTotal.toLocaleString() : "—",
+						RegPct: typeof r.registrationRate === "number" ? r.registrationRate.toFixed(1) + "%" : "—",
+						TurnAbs: typeof r.ballotsCast === "number" ? r.ballotsCast.toLocaleString() : "—",
+						TurnPct: typeof r.turnoutRate === "number" ? r.turnoutRate.toFixed(1) + "%" : "—",
+				  }))
+				: [];
 			break;
 
 		// --- GUI-22 ---
 		case "reg-comp":
 			headers = [
-				"State Type",
+				"State / Party",
 				"Registered Voters (Absolute)",
 				"Registration Rate (%)",
 				"Turnout (Absolute)",
 				"Turnout Rate (%)",
 			];
 
-			rows = [
-				{
-					Metric: "Opt-In State",
-					RegAbs: "—",
-					RegPct: "—",
-					TurnAbs: "—",
-					TurnPct: "—",
-				},
-				{
-					Metric: "Opt-Out State",
-					RegAbs: "—",
-					RegPct: "—",
-					TurnAbs: "—",
-					TurnPct: "—",
-				},
-			];
+			rows = Array.isArray(data)
+				? data.map((r) => ({
+						Metric: `${r.state} (${r.party})`,
+						RegAbs: r.registeredTotal ? r.registeredTotal.toLocaleString() : "—",
+						RegPct: typeof r.registrationRate === "number" ? r.registrationRate.toFixed(1) + "%" : "—",
+						TurnAbs: typeof r.ballotsCast === "number" ? r.ballotsCast.toLocaleString() : "—",
+						TurnPct: typeof r.turnoutRate === "number" ? r.turnoutRate.toFixed(1) + "%" : "—",
+				  }))
+				: [];
 			break;
 
 		// --- GUI-23 ---
 		case "early-voting":
 			headers = [
-				"State Type",
+				"State / Party",
 				"Total Early Votes (Absolute)",
 				"Early Voting Rate (%)",
-				"In-Person Early (Abs)",
+				"In-Person Early (Absolute)",
 				"In-Person Early (%)",
-				"Mail Early (Abs)",
+				"Mail Early (Absolute)",
 				"Mail Early (%)",
 			];
 
-			rows = [
-				{
-					Metric: "Republican State",
-					TotAbs: "—",
-					TotPct: "—",
-					InAbs: "—",
-					InPct: "—",
-					MailAbs: "—",
-					MailPct: "—",
-				},
-				{
-					Metric: "Democratic State",
-					TotAbs: "—",
-					TotPct: "—",
-					InAbs: "—",
-					InPct: "—",
-					MailAbs: "—",
-					MailPct: "—",
-				},
-			];
+			rows = Array.isArray(data)
+				? data.map((r) => ({
+						Metric: `${r.state} (${r.party})`,
+						TotAbs: typeof r.earlyTotalAbs === "number" ? r.earlyTotalAbs.toLocaleString() : "—",
+						TotPct: typeof r.earlyVotingRate === "number" ? r.earlyVotingRate.toFixed(1) + "%" : "—",
+						InAbs: typeof r.inPersonEarlyAbs === "number" ? r.inPersonEarlyAbs.toLocaleString() : "—",
+						InPct: typeof r.inPersonEarlyRate === "number" ? r.inPersonEarlyRate.toFixed(1) + "%" : "—",
+						MailAbs: typeof r.mailEarlyAbs === "number" ? r.mailEarlyAbs.toLocaleString() : "—",
+						MailPct: typeof r.mailEarlyRate === "number" ? r.mailEarlyRate.toFixed(1) + "%" : "—",
+				  }))
+				: [];
 			break;
 
 		// --- Default fallback (GUI-15 etc.) ---
@@ -114,23 +104,41 @@ export default function ComparisonTable({ mode, data }) {
 			rows = [
 				{
 					Metric: "Felony Voting Rights",
-					Republican: data.republican.felonyRights,
-					Democratic: data.democratic.felonyRights,
+					Republican: typeof data.republican.felonyRights === "string" ? data.republican.felonyRights : "—",
+					Democratic: typeof data.democratic.felonyRights === "string" ? data.democratic.felonyRights : "—",
 				},
 				{
 					Metric: "% Mail Ballots",
-					Republican: `${data.republican.percentMail.toFixed(1)}%`,
-					Democratic: `${data.democratic.percentMail.toFixed(1)}%`,
+					Republican:
+						typeof data.republican.percentMail === "number"
+							? `${data.republican.percentMail.toFixed(1)}%`
+							: "—",
+					Democratic:
+						typeof data.democratic.percentMail === "number"
+							? `${data.democratic.percentMail.toFixed(1)}%`
+							: "—",
 				},
 				{
 					Metric: "% Drop Box Ballots",
-					Republican: `${data.republican.percentDropbox.toFixed(1)}%`,
-					Democratic: `${data.democratic.percentDropbox.toFixed(1)}%`,
+					Republican:
+						typeof data.republican.percentDropbox === "number"
+							? `${data.republican.percentDropbox.toFixed(1)}%`
+							: "—",
+					Democratic:
+						typeof data.democratic.percentDropbox === "number"
+							? `${data.democratic.percentDropbox.toFixed(1)}%`
+							: "—",
 				},
 				{
 					Metric: "Voter Turnout",
-					Republican: `${data.republican.percentTurnout.toFixed(1)}%`,
-					Democratic: `${data.democratic.percentTurnout.toFixed(1)}%`,
+					Republican:
+						typeof data.republican.percentTurnout === "number"
+							? `${data.republican.percentTurnout.toFixed(1)}%`
+							: "—",
+					Democratic:
+						typeof data.democratic.percentTurnout === "number"
+							? `${data.democratic.percentTurnout.toFixed(1)}%`
+							: "—",
 				},
 			];
 			break;

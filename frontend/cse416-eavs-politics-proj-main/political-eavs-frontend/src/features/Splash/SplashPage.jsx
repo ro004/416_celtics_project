@@ -24,7 +24,12 @@ import EquipmentSummaryTable from "./EquipmentSummaryTable";
 import EquipmentByStateModal from "./EquipmentByStateModal";
 import CompareModal from "./CompareModal";
 import { getVotingEquipmentByState } from "../../api/equipment";
-import { getCumulativeCompareStateData } from "../../api/eavsCategories";
+import {
+	getCumulativeCompareStateData,
+	getEarlyVotingCompareStateData,
+	getOptInOutCompareStateData,
+	getRegCompareStateData,
+} from "../../api/eavsCategories";
 
 // styled red reset button
 const ResetButton = styled(Button)(({ theme }) => ({
@@ -64,7 +69,7 @@ export default function SplashPage() {
 		fetchEquipment();
 	}, []);
 
-	// fetch GUI-15 data when compare mode drop-down is selected
+	// fetch GUI-15/21/22/23 data when compare mode drop-down is selected
 	useEffect(() => {
 		if (compareMode === "felony-rights") {
 			const fetchGui15 = async () => {
@@ -77,6 +82,39 @@ export default function SplashPage() {
 			};
 
 			fetchGui15();
+		} else if (compareMode === "opt-in-out") {
+			const fetchGui21 = async () => {
+				try {
+					const data = await getOptInOutCompareStateData();
+					setCompareData(data);
+				} catch (err) {
+					console.error("Failed to load GUI-21 data", err);
+				}
+			};
+
+			fetchGui21();
+		} else if (compareMode === "reg-comp") {
+			const fetchGui22 = async () => {
+				try {
+					const data = await getRegCompareStateData();
+					setCompareData(data);
+				} catch (err) {
+					console.error("Failed to load GUI-22 data", err);
+				}
+			};
+
+			fetchGui22();
+		} else if (compareMode === "early-voting") {
+			const fetchGui23 = async () => {
+				try {
+					const data = await getEarlyVotingCompareStateData();
+					setCompareData(data);
+				} catch (err) {
+					console.error("Failed to load GUI-23 data", err);
+				}
+			};
+
+			fetchGui23();
 		}
 	}, [compareMode]);
 

@@ -57,3 +57,23 @@ export async function getCumulativeCompareStateData() {
 		},
 	};
 }
+
+// ---------------------------------------------------------------------------------------------
+
+// get GUI-21 data for South Carolina/Delaware/Colorado
+export async function getOptInOutCompareStateData() {
+	const { data } = await api.get(`/eavs/OptInOptOut/2024`);
+	return data;
+}
+
+// get GUI-22 data for South Carolina/Delaware
+export async function getRegCompareStateData() {
+	const { data } = await api.get(`/eavs/political-states-comparison/2024`);
+	return data;
+}
+
+// get GUI-23 data for South Carolina/Delaware
+export async function getEarlyVotingCompareStateData() {
+	const { data } = await api.get(`/eavs/early-voting/2024`);
+	return data;
+}
