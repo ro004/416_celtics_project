@@ -47,7 +47,7 @@ export default function VoterBubbleOverlay({ bubbles = [] }) {
 				.join("circle")
 				.attr("cx", (d) => d.x)
 				.attr("cy", (d) => d.y)
-				.attr("r", 6) // fixed size per spec
+				.attr("r", 2) // fixed size per spec
 				.attr("fill", (d) => color(d.party))
 				.attr("fill-opacity", 0.7)
 				.attr("stroke", "#111")
