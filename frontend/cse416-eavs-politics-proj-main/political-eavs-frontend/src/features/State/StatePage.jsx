@@ -114,6 +114,8 @@ export default function StatePage() {
 	const [selectedCounty, setSelectedCounty] = useState(null); // string | null
 	const [showRegisteredVoters, setShowRegisteredVoters] = useState(false);
 
+	const qualityMeasure = 84.28;
+
 	// Helper for GUI-25 bubble chart
 	const handleShowEquipBubble = async () => {
 		try {
@@ -370,15 +372,19 @@ export default function StatePage() {
 
 				{/* Right column */}
 				<Box sx={{ flex: 1, p: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-					{/* GUI-2 CVAP % (political party detailed only) */}
-					{isPoliticalPartyDetailed && (
-						<Paper sx={{ p: 2, mb: 1, flex: "0 0 auto" }}>
+					<Paper sx={{ p: 2, mb: 1, display: "flex", flexDirection: "row", justifyContent: "space-around" }}>
+						<Typography variant="body2">
+							EAVS Quality Measure:{" "}
+							<strong>{qualityMeasure !== null ? `${qualityMeasure}%` : "—"}</strong>
+						</Typography>
+
+						{/* GUI-2 CVAP % (political party detailed only) */}
+						{isPoliticalPartyDetailed && (
 							<Typography variant="body2">
 								% CVAP Eligible to Vote: <strong>{cvapPct !== null ? `${cvapPct}%` : "—"}</strong>
 							</Typography>
-						</Paper>
-					)}
-
+						)}
+					</Paper>
 					{/* Tabs for right column (avoid crowding) */}
 					<Paper sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 						<Box sx={{ borderBottom: 1, borderColor: "divider" }}>
