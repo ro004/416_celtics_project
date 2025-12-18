@@ -61,6 +61,7 @@ public class EavsService {
         double ballotMissing = 0;
         double noSignature = 0;
         double badSignature = 0;
+        double other = 0;
 
         List<CountyProvisionalDTO> countyDtos = new ArrayList<>();                         //Per-county/jurisdiction DTOs for the table
 
@@ -81,6 +82,9 @@ public class EavsService {
             Double rowBallotMissing        = formatNull(p.prov_rejected_ballot_missing);
             Double rowNoSignature          = formatNull(p.prov_rejected_no_signature);
             Double rowBadSignature         = formatNull(p.prov_rejected_bad_signature);
+            Double rowOther = formatNull(p.prov_rejected_other_1);
+            rowOther += formatNull(p.prov_rejected_other_2);
+            rowOther += formatNull(p.prov_rejected_other_3);
 
             // accumulate for statewide summary
             totalDetail       += rowTotalDetail;
@@ -92,6 +96,7 @@ public class EavsService {
             ballotMissing     += rowBallotMissing;
             noSignature       += rowNoSignature;
             badSignature      += rowBadSignature;
+            other += rowOther;
 
             // build county/jurisdiction DTO for the table
             CountyProvisionalDTO countyDto = new CountyProvisionalDTO(
@@ -107,7 +112,8 @@ public class EavsService {
                     rowIncomplete,
                     rowBallotMissing,
                     rowNoSignature,
-                    rowBadSignature
+                    rowBadSignature,
+                    rowOther
             );
             countyDtos.add(countyDto);
         }
@@ -124,7 +130,8 @@ public class EavsService {
                 incomplete,
                 ballotMissing,
                 noSignature,
-                badSignature
+                badSignature,
+                other
         );
 
         return new ProvisionalViewDTO(summary, countyDtos);                             //Wrap both DTOs
