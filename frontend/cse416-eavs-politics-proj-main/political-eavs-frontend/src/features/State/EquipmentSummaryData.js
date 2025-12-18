@@ -190,7 +190,7 @@ const MOCK_EQUIPMENT_DATA = [
 	// =========================
 	// FILLER ROWS (repeat pattern to reach ~1000)
 	// =========================
-	...Array.from({ length: 980 }).map((_, i) => ({
+	...Array.from({ length: 98 }).map((_, i) => ({
 		manufacturer: i % 3 === 0 ? "ES&S" : i % 3 === 1 ? "Dominion" : "Hart InterCivic",
 		model: `MockModel-${i}`,
 		equipmentType:
