@@ -17,3 +17,9 @@ export async function getVotingEquipmentByCounty(stateFips, year) {
 	const { data } = await api.get(`/eavs/equipment/${stateFips}/${year}`);
 	return data;
 }
+
+// get GUI-25 bubble chart data for given state
+export async function getEquipmentQualityVsRejects(stateFips, year) {
+	const { data } = await api.get(`/eavs/equipment-quality-rejected/${stateFips}/${year}`);
+	return data;
+}

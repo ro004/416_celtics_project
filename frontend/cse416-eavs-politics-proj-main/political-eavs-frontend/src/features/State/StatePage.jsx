@@ -36,7 +36,8 @@ import {
 import { getOklahomaVoterRegByCounty } from "../../api/voters";
 import VoterRegistrationTable from "./VoterRegistrationTable";
 import { getCvapScoreForState } from "../../api/cvap";
-import { getVotingEquipmentByCounty } from "../../api/equipment";
+import { getEquipmentQualityVsRejects, getVotingEquipmentByCounty } from "../../api/equipment";
+import EquipmentQualityBubbleModal from "./EquipmentQualityBubbleModal";
 //import { getStateVotingEquipTable } from "../../api/equipment";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
@@ -100,6 +101,21 @@ export default function StatePage() {
 
 	// GUI-10 voting equipment by county
 	const [equipmentByCounty, setEquipmentByCounty] = useState([]);
+
+	// GUI-25 equipment quality vs rejects bubble chart
+	const [showEquipBubble, setShowEquipBubble] = useState(false);
+	const [equipBubbleData, setEquipBubbleData] = useState([]);
+
+	// Helper for GUI-25 bubble chart
+	const handleShowEquipBubble = async () => {
+		try {
+			const data = await getEquipmentQualityVsRejects(id, 2024);
+			setEquipBubbleData(data || []);
+			setShowEquipBubble(true);
+		} catch (err) {
+			console.error("Failed to load equipment quality vs rejects:", err);
+		}
+	};
 
 	// fetch CVAP % on mount if political party detailed
 	useEffect(() => {
@@ -236,6 +252,13 @@ export default function StatePage() {
 					<Typography variant="h6" sx={{ flexGrow: 1 }}>
 						{stateFeature ? stateFeature.properties.name : id} — Display State
 					</Typography>
+
+					{/* Toggle button: switch GUI-25 bubble chart on/off */}
+					<Button variant={"outlined"} color="inherit" sx={{ mr: 2 }} onClick={handleShowEquipBubble}>
+						{showEquipBubble
+							? "Hide Equipment Quality vs Rejected Ballots Bubble"
+							: "Show Equipment Quality vs Rejected Ballots Bubble"}
+					</Button>
 
 					{/*UC-18 Bubble Chart Display*/}
 					{id === "40" && (
@@ -406,6 +429,14 @@ export default function StatePage() {
 						</Box>
 					</Paper>
 				</Box>
+
+				{showEquipBubble && (
+					<EquipmentQualityBubbleModal
+						open={showEquipBubble}
+						onClose={() => setShowEquipBubble(false)}
+						data={equipBubbleData}
+					/>
+				)}
 			</Box>
 		</Box>
 	);
