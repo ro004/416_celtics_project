@@ -114,6 +114,7 @@ export default function StateMap({
 	countyFeatures, // full county geojson Feature[] (all 4 detailed states)
 	showBubbles, // boolean, whether to show voter bubbles (OK only for now)
 	choroplethTotal, // same as GUI-4 data.counties (array of county objects) | voter reg
+	onCountyClick, // (countyName: string) => void
 }) {
 	// filter counties for this state only once
 	const counties = useMemo(() => {
@@ -128,6 +129,16 @@ export default function StateMap({
 		}),
 		[counties]
 	);
+
+	// GUI-19 onClick for counties
+	const handleEachCounty = (feature, layer) => {
+		layer.on({
+			click: () => {
+				const name = feature?.properties?.NAME || feature?.properties?.NAMELSAD;
+				if (name && onCountyClick) onCountyClick(name);
+			},
+		});
+	};
 
 	// Build county GEOID -> prov_total_cast lookup (GUI-5)
 	const provTotalByCounty = useMemo(() => {
@@ -368,7 +379,11 @@ export default function StateMap({
 					{/* UC-10 Overlay Legend */}
 					{isDetailed && counties.length > 0 && equipmentMode !== "none" && (
 						<>
-							<GeoJSON data={asFeatureCollection} style={equipmentStyle} />
+							<GeoJSON
+								data={asFeatureCollection}
+								style={equipmentStyle}
+								onEachFeature={handleEachCounty}
+							/>
 							<EquipmentLegend mode={equipmentMode} />
 						</>
 					)}
@@ -378,7 +393,11 @@ export default function StateMap({
 						<>
 							{dataCategory === "provisional" && (
 								<>
-									<GeoJSON data={asFeatureCollection} style={choroplethStyle} />
+									<GeoJSON
+										data={asFeatureCollection}
+										style={choroplethStyle}
+										onEachFeature={handleEachCounty}
+									/>
 									<ChoroplethLegend
 										title="Total Provisional Ballots Cast (E1a)"
 										bins={[100, 250, 400, 600, 800, 1000]}
@@ -389,7 +408,11 @@ export default function StateMap({
 							)}
 							{dataCategory === "active" && (
 								<>
-									<GeoJSON data={asFeatureCollection} style={choroplethStyle} />
+									<GeoJSON
+										data={asFeatureCollection}
+										style={choroplethStyle}
+										onEachFeature={handleEachCounty}
+									/>
 									<ChoroplethLegend
 										title="Active Registered Voters (%)"
 										bins={[20, 40, 60, 80, 100]}
@@ -400,7 +423,11 @@ export default function StateMap({
 							)}
 							{dataCategory === "deletions" && (
 								<>
-									<GeoJSON data={asFeatureCollection} style={choroplethStyle} />
+									<GeoJSON
+										data={asFeatureCollection}
+										style={choroplethStyle}
+										onEachFeature={handleEachCounty}
+									/>
 									<ChoroplethLegend
 										title="Pollbook Deletions (%)"
 										bins={[20, 40, 60, 80, 100]}
@@ -411,7 +438,11 @@ export default function StateMap({
 							)}
 							{dataCategory === "mail_rejects" && (
 								<>
-									<GeoJSON data={asFeatureCollection} style={choroplethStyle} />
+									<GeoJSON
+										data={asFeatureCollection}
+										style={choroplethStyle}
+										onEachFeature={handleEachCounty}
+									/>
 									<ChoroplethLegend
 										title="Mail Ballot Rejections (%)"
 										bins={[20, 40, 60, 80, 100]}
@@ -422,7 +453,11 @@ export default function StateMap({
 							)}
 							{dataCategory === "voter_reg" && (
 								<>
-									<GeoJSON data={asFeatureCollection} style={choroplethStyle} />
+									<GeoJSON
+										data={asFeatureCollection}
+										style={choroplethStyle}
+										onEachFeature={handleEachCounty}
+									/>
 									<ChoroplethLegend
 										title="Voter Registration (%)"
 										bins={[1, 2, 3, 4, 5, 100]}

@@ -30,3 +30,17 @@ export async function getOklahomaVoterRegByCounty() {
 	const { data } = await api.get("/voters/registration/by-county");
 	return data;
 }
+
+// get GUI-19 registered voters by county with pagination and party filter
+export async function getRegisteredVotersByCounty({ countyName, party, page, size }) {
+	const params = new URLSearchParams();
+	if (party) params.set("party", party); // "Dem" | "Rep" | "" (all)
+	params.set("page", String(page));
+	params.set("size", String(size));
+
+	const url = `/api/voters/registered/${encodeURIComponent(countyName)}?${params.toString()}`;
+
+	const res = await fetch(url);
+	if (!res.ok) throw new Error(`Failed to fetch voters: ${res.status}`);
+	return res.json();
+}

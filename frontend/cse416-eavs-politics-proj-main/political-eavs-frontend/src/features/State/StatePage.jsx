@@ -38,6 +38,7 @@ import VoterRegistrationTable from "./VoterRegistrationTable";
 import { getCvapScoreForState } from "../../api/cvap";
 import { getEquipmentQualityVsRejects, getVotingEquipmentByCounty } from "../../api/equipment";
 import EquipmentQualityBubbleModal from "./EquipmentQualityBubbleModal";
+import RegisteredVotersModal from "./RegisteredVotersModal";
 //import { getStateVotingEquipTable } from "../../api/equipment";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
@@ -105,6 +106,10 @@ export default function StatePage() {
 	// GUI-25 equipment quality vs rejects bubble chart
 	const [showEquipBubble, setShowEquipBubble] = useState(false);
 	const [equipBubbleData, setEquipBubbleData] = useState([]);
+
+	// GUI-19 registered voters by county
+	const [selectedCounty, setSelectedCounty] = useState(null); // string | null
+	const [showRegisteredVoters, setShowRegisteredVoters] = useState(false);
 
 	// Helper for GUI-25 bubble chart
 	const handleShowEquipBubble = async () => {
@@ -324,6 +329,11 @@ export default function StatePage() {
 								choroplethTotal={mapChoroplethData}
 								countyFeatures={countyBoundaries.features}
 								showBubbles={showBubbles}
+								onCountyClick={(countyName) => {
+									if (id !== "40") return; // OK only
+									setSelectedCounty(countyName);
+									setShowRegisteredVoters(true);
+								}}
 							/>
 						)}
 					</Paper>
@@ -435,6 +445,17 @@ export default function StatePage() {
 						open={showEquipBubble}
 						onClose={() => setShowEquipBubble(false)}
 						data={equipBubbleData}
+					/>
+				)}
+
+				{id === "40" && (
+					<RegisteredVotersModal
+						open={showRegisteredVoters}
+						countyName={selectedCounty}
+						onClose={() => {
+							setShowRegisteredVoters(false);
+							setSelectedCounty(null);
+						}}
 					/>
 				)}
 			</Box>
