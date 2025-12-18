@@ -32,6 +32,7 @@ export default function VoterRegistrationTable({ rowsData = [] }) {
 							<TableCell align="right">Republican</TableCell>
 							<TableCell align="right">Independent</TableCell>
 							<TableCell align="right">Other</TableCell>
+							<TableCell align="right">Completeness Score</TableCell>
 						</TableRow>
 					</TableHead>
 
@@ -44,6 +45,7 @@ export default function VoterRegistrationTable({ rowsData = [] }) {
 								<TableCell align="right">{r.republican.toLocaleString()}</TableCell>
 								<TableCell align="right">{r.independent.toLocaleString()}</TableCell>
 								<TableCell align="right">{r.other.toLocaleString()}</TableCell>
+								<TableCell align="right">100%</TableCell>
 							</TableRow>
 						))}
 					</TableBody>
