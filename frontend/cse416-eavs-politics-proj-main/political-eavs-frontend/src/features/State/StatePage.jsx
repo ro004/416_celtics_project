@@ -272,7 +272,7 @@ export default function StatePage() {
 			{/* Header */}
 			<AppBar position="static">
 				<Toolbar sx={{ gap: 2 }}>
-					<Button color="inherit" onClick={() => navigate("/")}>
+					<Button variant={"outlined"} color="inherit" onClick={() => navigate("/")}>
 						← Splash Page
 					</Button>
 
@@ -331,7 +331,13 @@ export default function StatePage() {
 						</FormControl>
 					)}
 
-					<ResetButton variant="contained">Reset</ResetButton>
+					<ResetButton
+						variant="contained"
+						onClick={() => {
+							window.location.href = "/";
+						}}>
+						Reset
+					</ResetButton>
 				</Toolbar>
 			</AppBar>
 

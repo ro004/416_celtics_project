@@ -229,7 +229,13 @@ export default function SplashPage() {
 						</Select>
 					</FormControl>
 
-					<ResetButton variant="contained">Reset</ResetButton>
+					<ResetButton
+						variant="contained"
+						onClick={() => {
+							window.location.href = "/";
+						}}>
+						Reset
+					</ResetButton>
 				</Toolbar>
 			</AppBar>
 
