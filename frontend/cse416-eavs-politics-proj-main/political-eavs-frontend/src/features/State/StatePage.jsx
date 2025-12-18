@@ -35,6 +35,7 @@ import {
 } from "../../api/eavsCategories";
 import { getOklahomaVoterRegByCounty } from "../../api/voters";
 import VoterRegistrationTable from "./VoterRegistrationTable";
+import { getCvapScoreForState } from "../../api/cvap";
 //import { getStateVotingEquipTable } from "../../api/equipment";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
@@ -93,10 +94,32 @@ export default function StatePage() {
 	// GUI-17 voter registration (OK only)
 	const [voterRegData, setVoterRegData] = useState([]);
 
-	// mock CVAP values for now
-	const registeredVoters = 1000000;
-	const cvap = 1200000;
-	const cvapPct = ((registeredVoters / cvap) * 100).toFixed(1);
+	// GUI-2 CVAP Score (SC and DE only)
+	const [cvapPct, setCvapPct] = useState(null);
+
+	// fetch CVAP % on mount if political party detailed
+	useEffect(() => {
+		if (!isPoliticalPartyDetailed) {
+			setCvapPct(null);
+			return;
+		}
+
+		const fetchCvap = async () => {
+			try {
+				const data = await getCvapScoreForState(id);
+
+				// Defensive parsing
+				const pct = typeof data?.cvapEligiblePct === "number" ? data.cvapEligiblePct.toFixed(1) : null;
+
+				setCvapPct(pct);
+			} catch (err) {
+				console.error("Failed to load CVAP score:", err);
+				setCvapPct(null);
+			}
+		};
+
+		fetchCvap();
+	}, [id, isPoliticalPartyDetailed]);
 
 	// fetch voting equipment table data on mount
 	// useEffect(() => {
@@ -260,11 +283,11 @@ export default function StatePage() {
 
 				{/* Right column */}
 				<Box sx={{ flex: 1, p: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-					{/* CVAP (political party detailed only) */}
+					{/* GUI-2 CVAP % (political party detailed only) */}
 					{isPoliticalPartyDetailed && (
 						<Paper sx={{ p: 2, mb: 1, flex: "0 0 auto" }}>
 							<Typography variant="body2">
-								% CVAP Eligible to Vote: <strong>{cvapPct}%</strong>
+								% CVAP Eligible to Vote: <strong>{cvapPct !== null ? `${cvapPct}%` : "—"}</strong>
 							</Typography>
 						</Paper>
 					)}
