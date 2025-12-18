@@ -17,12 +17,12 @@ function FitBounds({ feature }) {
 }
 
 // simple seeded-ish value so counties are stable without real data
-const pseudoValue = (str, min = 10, max = 500) => {
-	let h = 0;
-	for (let i = 0; i < str.length; i++) h = (h << 5) - h + str.charCodeAt(i);
-	const r = Math.abs(h % 997) / 997;
-	return Math.round(min + r * (max - min));
-};
+// const pseudoValue = (str, min = 10, max = 500) => {
+// 	let h = 0;
+// 	for (let i = 0; i < str.length; i++) h = (h << 5) - h + str.charCodeAt(i);
+// 	const r = Math.abs(h % 997) / 997;
+// 	return Math.round(min + r * (max - min));
+// };
 
 // categorical palette (avoid red/blue)
 const EQUIP_COLORS = {
@@ -61,6 +61,48 @@ function EquipmentLegend({ mode }) {
 	}, [map, mode]);
 	return null;
 }
+// Helper for stripe pattern for GUI-10 map
+function EquipmentPatterns() {
+	const map = useMap();
+
+	useEffect(() => {
+		const svg = map.getPanes().overlayPane.querySelector("svg");
+		if (!svg || svg.querySelector("#equip-patterns")) return;
+
+		const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+		defs.setAttribute("id", "equip-patterns");
+
+		Object.entries(EQUIP_COLORS).forEach(([, color], idx) => {
+			const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+			pattern.setAttribute("id", `equip-stripe-${idx}`);
+			pattern.setAttribute("patternUnits", "userSpaceOnUse");
+			pattern.setAttribute("width", "8");
+			pattern.setAttribute("height", "8");
+			pattern.setAttribute("patternTransform", "rotate(45)");
+
+			const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+			rect.setAttribute("width", "8");
+			rect.setAttribute("height", "8");
+			rect.setAttribute("fill", color);
+
+			const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+			line.setAttribute("x1", "0");
+			line.setAttribute("y1", "0");
+			line.setAttribute("x2", "0");
+			line.setAttribute("y2", "8");
+			line.setAttribute("stroke", "white");
+			line.setAttribute("stroke-width", "2");
+
+			pattern.appendChild(rect);
+			pattern.appendChild(line);
+			defs.appendChild(pattern);
+		});
+
+		svg.insertBefore(defs, svg.firstChild);
+	}, [map]);
+
+	return null;
+}
 
 export default function StateMap({
 	stateFeature, // GeoJSON feature for the selected state
@@ -68,6 +110,7 @@ export default function StateMap({
 	isDetailed, // boolean
 	dataCategory, // "provisional" | "active" | "deletions" | "mail_rejects" | "voter_reg"
 	equipmentMode, // "none" | "type"
+	equipmentByCounty, // GUI-10 data (array of county equipment objects)
 	countyFeatures, // full county geojson Feature[] (all 4 detailed states)
 	showBubbles, // boolean, whether to show voter bubbles (OK only for now)
 	choroplethTotal, // same as GUI-4 data.counties (array of county objects) | voter reg
@@ -144,7 +187,7 @@ export default function StateMap({
 		return map;
 	}, [choroplethTotal]);
 
-	// build county name -> voter registration percentage lookup (GUI-10)
+	// build county name -> voter registration percentage lookup (GUI-9)
 	const voterRegPctByCounty = useMemo(() => {
 		const map = new Map();
 		if (!Array.isArray(choroplethTotal)) return map;
@@ -156,6 +199,27 @@ export default function StateMap({
 
 		return map;
 	}, [choroplethTotal]);
+
+	// build county GEOID -> array of equipment types (GUI-10)
+	const equipmentByCountyGEOID = useMemo(() => {
+		const map = new Map();
+
+		if (!Array.isArray(equipmentByCounty)) return map;
+
+		equipmentByCounty.forEach((r) => {
+			if (!r.county_fips) return;
+
+			const types = [];
+			if (r.dreNoVvpat) types.push("DRE no VVPAT");
+			if (r.dreWithVvpat) types.push("DRE with VVPAT");
+			if (r.bmd) types.push("Ballot Marking Device");
+			if (r.scanner) types.push("Scanner");
+
+			map.set(r.county_fips, types);
+		});
+
+		return map;
+	}, [equipmentByCounty]);
 
 	// style for base state outline
 	const baseStyle = useMemo(
@@ -170,20 +234,41 @@ export default function StateMap({
 
 	// equipment overlay style
 	const equipmentStyle = (feature) => {
-		const id = feature.properties.GEOID || feature.properties.NAME || `${feature.properties.COUNTYFP}`;
-		if (equipmentMode === "type") {
-			// deterministic mock assignment
-			const pool = Object.keys(EQUIP_COLORS);
-			const idx = pseudoValue(id, 0, pool.length - 1) % pool.length;
-			const cat = pool[idx];
+		if (equipmentMode !== "type") {
+			return { color: "#555", weight: 0.8, fillOpacity: 0 };
+		}
+
+		const geoid = feature.properties.GEOID;
+		const types = equipmentByCountyGEOID.get(geoid);
+
+		// No data --> leave as-is
+		if (!types || types.length === 0) {
 			return {
-				fillColor: EQUIP_COLORS[cat],
-				color: "#111",
-				weight: 0.8,
-				fillOpacity: 0.8,
+				fillOpacity: 0,
 			};
 		}
-		return { color: "#555", weight: 0.8, fillOpacity: 0 };
+
+		// Single equipment type → solid fill
+		if (types.length === 1) {
+			return {
+				fillColor: EQUIP_COLORS[types[0]],
+				color: "#111",
+				weight: 0.8,
+				fillOpacity: 0.85,
+			};
+		}
+
+		// Multiple equipment types → fill + colored stripes
+		const fillType = types[0];
+		const stripeType = types[1]; // second type determines stripe color
+
+		return {
+			fillColor: EQUIP_COLORS[fillType],
+			color: EQUIP_COLORS[stripeType], // stripe color
+			weight: 1.2,
+			fillOpacity: 0.85,
+			dashArray: "6 4", // diagonal stripe effect
+		};
 	};
 
 	// GUI-5 choropleth style – monochrome orange bins
@@ -251,6 +336,9 @@ export default function StateMap({
 					center={[37.8, -96]}
 					zoomControl={true}>
 					<TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+					{/* SVG patterns for equipment overlay */}
+					{equipmentMode === "type" && <EquipmentPatterns />}
 
 					{/* Base state outline */}
 					<GeoJSON data={stateFeature} style={baseStyle} />

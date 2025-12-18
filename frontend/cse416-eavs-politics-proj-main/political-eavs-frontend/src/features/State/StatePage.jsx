@@ -36,6 +36,7 @@ import {
 import { getOklahomaVoterRegByCounty } from "../../api/voters";
 import VoterRegistrationTable from "./VoterRegistrationTable";
 import { getCvapScoreForState } from "../../api/cvap";
+import { getVotingEquipmentByCounty } from "../../api/equipment";
 //import { getStateVotingEquipTable } from "../../api/equipment";
 
 const DETAILED_STATES = ["CO", "DE", "SC", "OK"];
@@ -96,6 +97,9 @@ export default function StatePage() {
 
 	// GUI-2 CVAP Score (SC and DE only)
 	const [cvapPct, setCvapPct] = useState(null);
+
+	// GUI-10 voting equipment by county
+	const [equipmentByCounty, setEquipmentByCounty] = useState([]);
 
 	// fetch CVAP % on mount if political party detailed
 	useEffect(() => {
@@ -177,6 +181,26 @@ export default function StatePage() {
 
 		fetchCategoryData();
 	}, [id, category]);
+
+	// fetch equipment by county data for mapping on 4 detailed states only (GUI-10)
+	useEffect(() => {
+		if (!isDetailed || equipOverlay === "none") {
+			setEquipmentByCounty([]);
+			return;
+		}
+
+		const fetchEquipment = async () => {
+			try {
+				const data = await getVotingEquipmentByCounty(id, 2024);
+				setEquipmentByCounty(Array.isArray(data) ? data : []);
+			} catch (err) {
+				console.error("Failed to load voting equipment data:", err);
+				setEquipmentByCounty([]);
+			}
+		};
+
+		fetchEquipment();
+	}, [id, isDetailed, equipOverlay]);
 
 	// fetch voter registration data for OK only (GUI-17)
 	useEffect(() => {
@@ -273,6 +297,7 @@ export default function StatePage() {
 								isDetailed={isDetailed}
 								dataCategory={mapDataCategory}
 								equipmentMode={equipOverlay}
+								equipmentByCounty={equipmentByCounty}
 								choroplethTotal={mapChoroplethData}
 								countyFeatures={countyBoundaries.features}
 								showBubbles={showBubbles}
