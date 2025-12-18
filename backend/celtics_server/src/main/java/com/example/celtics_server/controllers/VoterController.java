@@ -2,6 +2,7 @@ package com.example.celtics_server.controllers;
 
 import com.example.celtics_server.CountyPartyCount;
 import com.example.celtics_server.CountySummary;
+import com.example.celtics_server.dtos.CensusBlockBubbleDTO;
 import com.example.celtics_server.dtos.PagedVoterNamesDTO;
 import com.example.celtics_server.dtos.VoterRegCountyDTO;
 import com.example.celtics_server.models.Voter;
@@ -33,11 +34,18 @@ public class VoterController {
         return voterService.getVotersByParty(party);
     }
 
-    // GUI-17+18: table + choropleth values per county
+    // GUI-17: table + choropleth values per county
     @GetMapping("/registration/by-county")
     public List<VoterRegCountyDTO> getRegistrationByCounty() {
         return voterService.getVoterRegByCounty();
     }
+
+    //GUI 18
+    @GetMapping("/bubbles/census-block")
+    public List<CensusBlockBubbleDTO> getCensusBlockBubbles() {
+        return voterService.getCensusBlockBubbles();
+    }
+
     //GUI-19
     @GetMapping("/registered/{county}")
     public PagedVoterNamesDTO getRegisteredVoters(

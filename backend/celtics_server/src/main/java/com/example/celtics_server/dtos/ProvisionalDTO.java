@@ -12,5 +12,5 @@ public record ProvisionalDTO(
         Double E2g,         //prov_rejected_ballot_missing
         Double E2h,         //prov_rejected_no_signature
         Double E2i,          //prov_rejected_bad_signature
-        Double other
+        Double Other
 ) {}

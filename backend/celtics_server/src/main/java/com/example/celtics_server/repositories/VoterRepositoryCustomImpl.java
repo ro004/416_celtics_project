@@ -1,5 +1,6 @@
 package com.example.celtics_server.repositories;
 
+import com.example.celtics_server.dtos.CensusBlockBubbleDTO;
 import com.example.celtics_server.dtos.VoterRegCountyAggDTO;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -35,5 +36,20 @@ public class VoterRepositoryCustomImpl implements VoterRepositoryCustom {
         );
         return mongoTemplate.aggregate(agg, "voters", VoterRegCountyAggDTO.class)
                 .getMappedResults();
+    }
+
+    @Override
+    public List<CensusBlockBubbleDTO> getCensusBlockBubbles() {
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("blockBubble").ne(null)),
+                Aggregation.group("Census_Block")
+                        .first("blockBubble.lon").as("lon")
+                        .first("blockBubble.lat").as("lat")
+                        .first("blockBubble.majorityParty").as("majorityParty"),
+                Aggregation.project("lon","lat","majorityParty")
+                        .and("_id").as("censusBlock")
+        );
+
+        return mongoTemplate.aggregate(agg, "voters", CensusBlockBubbleDTO.class).getMappedResults();
     }
 }

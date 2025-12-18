@@ -14,5 +14,5 @@ public record CountyProvisionalDTO(
         Double prov_rejected_ballot_missing,
         Double prov_rejected_no_signature,
         Double prov_rejected_bad_signature,
-        Double other
+        Double Other
 ) {}

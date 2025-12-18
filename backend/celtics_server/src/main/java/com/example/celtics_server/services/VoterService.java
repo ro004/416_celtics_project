@@ -1,14 +1,11 @@
 package com.example.celtics_server.services;
-import com.example.celtics_server.dtos.PagedVoterNamesDTO;
-import com.example.celtics_server.dtos.VoterNameDTO;
-import com.example.celtics_server.dtos.VoterRegCountyDTO;
+import com.example.celtics_server.dtos.*;
 import com.example.celtics_server.models.Voter;
 import com.example.celtics_server.repositories.VoterRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import com.example.celtics_server.dtos.VoterRegCountyAggDTO;
 
 import java.util.List;
 
@@ -83,5 +80,9 @@ public class VoterService {
                 resultPage.getTotalPages(),
                 names
         );
+    }
+
+    public List<CensusBlockBubbleDTO> getCensusBlockBubbles() {
+        return voterRepository.getCensusBlockBubbles();
     }
 }
